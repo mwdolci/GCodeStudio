@@ -1,12 +1,19 @@
 import java.nio.file.Paths;
 
+import javax.swing.SwingUtilities;
+
 // Pour lancer en bash:
-//javac Main.java PythonCaller.java
+//javac *.java
 //java Main "C:\Users\mdolci\Desktop\GCodeStudio\datas_testing\Levier.anc"
 
 public class Main {
 
     public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+            new MainWindow();  // Lance la fenêtre
+        });
+
         if (args.length < 1) {
             System.out.println("Veuillez fournir le chemin du fichier G-code.");
             return;
