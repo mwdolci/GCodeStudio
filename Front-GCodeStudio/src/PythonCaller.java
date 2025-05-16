@@ -2,9 +2,9 @@ import java.io.*;
 
 public class PythonCaller {
 
-    public static void runScript(String gcodeFilePath, String pythonScriptPath) {
+    public static void runScript(String gcodeFilePath, String stlFilePath, String pythonScriptPath, boolean launchViewer) {
         String pythonExe = "python";
-        ProcessBuilder processBuilder = new ProcessBuilder(pythonExe, pythonScriptPath, gcodeFilePath);
+        ProcessBuilder processBuilder = new ProcessBuilder(pythonExe, pythonScriptPath, gcodeFilePath, stlFilePath, Boolean.toString(launchViewer));
         processBuilder.redirectErrorStream(true); // Combine stdout + stderr
 
         try {

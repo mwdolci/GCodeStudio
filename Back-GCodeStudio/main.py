@@ -59,18 +59,29 @@ def viewer_launch(path_gcode_file,stl_path_file):
 
 # Point d'entrée app
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <chemin_fichier_gcode>")
+    if len(sys.argv) < 4:
+        print("Usage: python script.py <chemin_fichier_gcode> <chemin_fichier_stl> <True|False>")
         sys.exit(1)
 
     path_gcode_file = Path(sys.argv[1])
+    path_stl_file = Path(sys.argv[2])
+
+    # Convertir le second argument en booléen
+    flag_str = sys.argv[3].lower()
+    if flag_str == 'true':
+        launchViewer = True
+    else:
+        launchViewer = False
+
     temp_folder = Path(os.getenv('TEMP', '/tmp'))
     file_name = path_gcode_file.name
     export_file_csv = temp_folder
     export_file = temp_folder / get_datetime_string()
 
     gcode_treatment(path_gcode_file, export_file_csv, file_name)
-    viewer_launch(path_gcode_file, export_file)
+
+    if (launchViewer):
+        viewer_launch(path_gcode_file, path_stl_file)
 
 if __name__ == "__main__":
     main()
