@@ -3,13 +3,23 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.nio.file.Paths;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MainWindow extends JFrame {
 
-    boolean GCodeIsOpen = false;
-    boolean STLIsOpen = false;
-    String fullPathSTL = "";
-    String fullPathGCode = "";
+    private boolean GCodeIsOpen = false;
+    private boolean STLIsOpen = false;
+    private String fullPathSTL = "";
+    private String fullPathGCode = "";
+
+    DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
+    JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
 
     public MainWindow() {
         super("GCodeStudio");
@@ -53,17 +63,38 @@ public class MainWindow extends JFrame {
 
             int result = fileChooser.showOpenDialog(this); // this = parent JFrame
 
-            if (result == JFileChooser.APPROVE_OPTION) {
+            if (result == JFileChooser.APPROVE_OPTION) { // Si fichier sélectionné 
                 File selectedFile = fileChooser.getSelectedFile();
                 fullPathGCode = selectedFile.getAbsolutePath();
-                
-                String currentDir = Paths.get("").toAbsolutePath().toString();
-                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
 
-                GCodeIsOpen = true;
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
 
-                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen); // Si un stl est déjà ouvert on lance aussi le viewer
-                
+                // Travail en arrière-plan
+                SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        String currentDir = Paths.get("").toAbsolutePath().toString();
+                        String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+
+                        GCodeIsOpen = true;
+
+                        PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
+
+                        Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
+                        Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
+
+                        loadCSVColumn(tempGCodePath.toFile());
+
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        setCursor(Cursor.getDefaultCursor()); // Curseur normal
+                    }
+                };
+
+                worker.execute();
             }
         });
 
@@ -146,5 +177,79 @@ public class MainWindow extends JFrame {
         setVisible(true);
 
 
+
+
+
+
+
+
+
+
+
+
+
+        // Création d'une liste de string
+        // DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
+        // JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
+        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Mode sélection d'un seul élément à la fois
+
+        // Scrollbar panel pour la liste
+        JScrollPane scrollPane = new JScrollPane(itemList);
+        //scrollPane.setPreferredSize(new Dimension(300, 400));
+
+        // Zone de texte pour afficher ou éditer la ligne sélectionnée
+        JTextField selectedItemField = new JTextField();
+        //selectedItemField.setPreferredSize(new Dimension(280, 30));
+
+        // Bouton pour modifier l'élément sélectionné
+        JButton editButton = new JButton("Modifier");
+
+        // Evénement bouton Modifier
+        editButton.addActionListener(e -> {
+            int indexListGCode = itemList.getSelectedIndex();
+            if (indexListGCode >= 0) { // On fait quelque chose seulement si un élément est sélectionné
+                listModel.set(indexListGCode, selectedItemField.getText()); // On remplace le texte d'origine
+            }
+        });
+
+        // Ecoute jusqu'au clic dans la liste
+        itemList.addListSelectionListener(new ListSelectionListener() { // Ecouteur d'événement à la liste
+            public void valueChanged(ListSelectionEvent e) { // Méthode déclenché sur changement de sélection
+                if (!e.getValueIsAdjusting()) { // !! sécurité pour n'avoir qu'un seul événement à la fois
+                    String selected = itemList.getSelectedValue();  // Récupère le texte
+                    selectedItemField.setText(selected);            // Affiche le texte
+                }
+            }
+        });
+
+        // Disposition des éléments
+        bottomLeft.setLayout(new BorderLayout()); // 5 zones (Nord Sud Centre Est Ouest)
+        bottomLeft.add(scrollPane, BorderLayout.CENTER); //Centre le G-Code
+
+        JPanel bottomControls = new JPanel(); // sous conteneur
+        bottomControls.setLayout(new BorderLayout());
+        bottomControls.add(selectedItemField, BorderLayout.CENTER);
+        bottomControls.add(editButton, BorderLayout.EAST);
+
+        bottomLeft.add(bottomControls, BorderLayout.SOUTH);
+
+    }
+
+    public void loadCSVColumn(File csvFile) {
+        listModel.clear();
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            String header = br.readLine(); // pour ne pas charger l'entête de colonne
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(","); // Séparateur
+                if (values.length > 0) {
+                    listModel.addElement(values[0]); // Ajoute la 1re colonne
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Erreur de lecture du fichier CSV.");
+        }
     }
 }
