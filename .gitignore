@@ -5,6 +5,7 @@ venv/
 *.pyc
 *.txt
 *.debug
+*.class
 
 # sauf requirements.txt
 !requirements.txt

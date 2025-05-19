@@ -17,122 +17,60 @@ public class MainWindow extends JFrame {
     private boolean STLIsOpen = false;
     private String fullPathSTL = "";
     private String fullPathGCode = "";
+    private java.util.List<String> tempData;  // variable temporaire pour stocker les données CSV
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
 
     public MainWindow() {
         super("GCodeStudio");
+        initializeWindow();
+        setupMenu();
+        JSplitPane mainSplit = setupPanels();
+        setupListForGCode(mainSplit);
+        setVisible(true);
+    }
 
+    private void initializeWindow() {
         // Logo
         Image icon = Toolkit.getDefaultToolkit().getImage("../../img/logo.png");
         setIconImage(icon);
 
-        // Couleurs
-        Color backgroundColor = new Color(30, 30, 30);
-        Color borderColor = Color.WHITE;
-        Color foregroundColor = Color.WHITE;
-
         // Configuration de la fenêtre
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Prend tout l'écran
-        setDefaultCloseOperation(EXIT_ON_CLOSE); // Si je ferme avec la croix, ça stop le process
-        setLocationRelativeTo(null); // Centrer
-        
+        setExtendedState(JFrame.MAXIMIZED_BOTH);    // Prend tout l'écran
+        setDefaultCloseOperation(EXIT_ON_CLOSE);    // Si je ferme avec la croix, ça stop le process
+        setLocationRelativeTo(null);              // Centrer
+    }
+
+    private void setupMenu() {
         // Menu bar
         JMenuBar menuBar = new JMenuBar();
 
-        // Liste Fichier
+        // *Liste Fichier*
         JMenu menuFile = new JMenu("Fichier");
         JMenuItem itemOpenGCode = new JMenuItem("Ouvrir GCode");
         JMenuItem itemOpenSTL = new JMenuItem("Ouvrir 3D");
         JMenuItem itemSaveGCode = new JMenuItem("Enregistrer GCode");
         JMenuItem itemSaveGCodeAs = new JMenuItem("Enregistrer GCode sous");
 
+        itemOpenGCode.addActionListener(e -> openGCodeFile());
+        itemOpenSTL.addActionListener(e -> openSTLFile());
+        // itemSaveGCode.addActionListener(e -> saveGCode());
+        // itemSaveGCodeAs.addActionListener(e -> saveGCodeAs());
+
         menuFile.add(itemOpenGCode);
         menuFile.add(itemOpenSTL);
         menuFile.add(itemSaveGCode);
         menuFile.add(itemSaveGCodeAs);
 
-        // Evénement "Ouvrir GCode"
-        itemOpenGCode.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Ouvrir un fichier GCode");
-
-            // Filtre pour limiter les fichiers affichés aux extensions reconnues
-            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Fichiers .anc .nc .txt", "anc", "nc", "txt"));
-
-            int result = fileChooser.showOpenDialog(this); // this = parent JFrame
-
-            if (result == JFileChooser.APPROVE_OPTION) { // Si fichier sélectionné 
-                File selectedFile = fileChooser.getSelectedFile();
-                fullPathGCode = selectedFile.getAbsolutePath();
-
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
-
-                // Travail en arrière-plan
-                SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        String currentDir = Paths.get("").toAbsolutePath().toString();
-                        String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-
-                        GCodeIsOpen = true;
-
-                        PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
-
-                        Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
-                        Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
-
-                        loadCSVColumn(tempGCodePath.toFile());
-
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        setCursor(Cursor.getDefaultCursor()); // Curseur normal
-                    }
-                };
-
-                worker.execute();
-            }
-        });
-
-        // Evénement "Ouvrir STL"
-        itemOpenSTL.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Ouvrir un fichier 3D");
-
-            // Filtre pour limiter les fichiers affichés aux extensions reconnues
-            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Fichiers .stl", "stl"));
-
-            int result = fileChooser.showOpenDialog(this); // this = parent JFrame
-
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                fullPathSTL = selectedFile.getAbsolutePath();
-                
-                String currentDir = Paths.get("").toAbsolutePath().toString();
-                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-
-                STLIsOpen = true;
-
-                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
-            }
-        });
-
-        // itemSaveGCode.addActionListener(...);
-        // itemSaveGCodeAs.addActionListener(...);
-
-        // Liste Fonctions
+        // *Liste Fonctions*
         JMenu menuFunctions = new JMenu("Fonctions");
         JMenuItem itemCalculate = new JMenuItem("Recalculer");
-
         menuFunctions.add(itemCalculate);
 
-        // itemCalculate.addActionListener(...);
+        // itemCalculate.addActionListener(e -> calculation());
 
-        // Liste Options
+        // *Liste Options*
         JMenu menuOptions = new JMenu("Options");
 
         menuBar.add(menuFile);
@@ -140,6 +78,11 @@ public class MainWindow extends JFrame {
         menuBar.add(menuOptions);
 
         setJMenuBar(menuBar);
+    }
+
+    private JSplitPane setupPanels() {
+        Color backgroundColor = new Color(30, 30, 30);
+        Color borderColor = Color.WHITE;
 
         // Création des 4 panneaux
         JPanel topLeft = new JPanel();
@@ -174,23 +117,11 @@ public class MainWindow extends JFrame {
         // Ajouter le split principal à la fenêtre
         getContentPane().add(mainSplit, BorderLayout.CENTER);
 
-        setVisible(true);
+        return mainSplit;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-        // Création d'une liste de string
-        // DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
-        // JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
+    private void setupListForGCode(JSplitPane mainSplit) {
+        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent(); // Récupère la zone en bas à gauche
         itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Mode sélection d'un seul élément à la fois
 
         // Scrollbar panel pour la liste
@@ -232,24 +163,95 @@ public class MainWindow extends JFrame {
         bottomControls.add(editButton, BorderLayout.EAST);
 
         bottomLeft.add(bottomControls, BorderLayout.SOUTH);
-
     }
 
-    public void loadCSVColumn(File csvFile) {
-        listModel.clear();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
-            String header = br.readLine(); // pour ne pas charger l'entête de colonne
+    private void openGCodeFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Ouvrir un fichier GCode");
+
+        // Filtre pour limiter les fichiers affichés aux extensions reconnues
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Fichiers .anc .nc .txt", "anc", "nc", "txt"));
+
+        int result = fileChooser.showOpenDialog(this); // this = parent JFrame
+
+        if (result == JFileChooser.APPROVE_OPTION) { // Si fichier sélectionné 
+            File selectedFile = fileChooser.getSelectedFile();
+            fullPathGCode = selectedFile.getAbsolutePath();
+
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
+
+            // Travail en arrière-plan
+            SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
+                @Override
+                protected Void doInBackground() throws Exception {
+                    String currentDir = Paths.get("").toAbsolutePath().toString();
+                    String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+
+                    GCodeIsOpen = true;
+
+                    PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
+
+                    Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
+                    Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
+
+                    tempData = loadCSVColumnToList(tempGCodePath.toFile());
+
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    listModel.clear();
+                    for (String item : tempData) {
+                        listModel.addElement(item);
+                    }
+                    setCursor(Cursor.getDefaultCursor()); // Curseur normal
+                }
+            };
+
+            worker.execute();
+        }
+    }
+
+    // Charge les données CSV dans une liste String sans toucher à l'UI (thread swing) --> évite les erreurs sporadique au chargement du GCode
+    private java.util.List<String> loadCSVColumnToList(File csvFile) {
+        java.util.List<String> dataList = new java.util.ArrayList<>(); //Création de la liste 
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) { //Ouverutre csv pour lecture
+            String header = br.readLine();  // Ignore entête
 
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(","); // Séparateur
                 if (values.length > 0) {
-                    listModel.addElement(values[0]); // Ajoute la 1re colonne
+                    dataList.add(values[0]); // Ajoute colonne 1
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erreur de lecture du fichier CSV.");
+        }
+        return dataList;
+    }
+
+    private void openSTLFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Ouvrir un fichier 3D");
+
+        // Filtre pour limiter les fichiers affichés aux extensions reconnues
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Fichiers .stl", "stl"));
+
+        int result = fileChooser.showOpenDialog(this); // this = parent JFrame
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            fullPathSTL = selectedFile.getAbsolutePath();
+                
+            String currentDir = Paths.get("").toAbsolutePath().toString();
+            String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+               
+            STLIsOpen = true;
+
+            PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
         }
     }
 }
