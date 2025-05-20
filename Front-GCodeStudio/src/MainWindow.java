@@ -5,6 +5,10 @@ import java.io.File;
 import java.nio.file.Paths;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -18,6 +22,9 @@ public class MainWindow extends JFrame {
     private String fullPathSTL = "";
     private String fullPathGCode = "";
     private java.util.List<String> tempData;  // variable temporaire pour stocker les données CSV
+    private JTextArea gcodeEditor;
+    private DefaultTableModel tableModel;
+    private JTable table;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -121,48 +128,47 @@ public class MainWindow extends JFrame {
     }
 
     private void setupListForGCode(JSplitPane mainSplit) {
-        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent(); // Récupère la zone en bas à gauche
-        itemList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Mode sélection d'un seul élément à la fois
+        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();  // Liste GCode
+        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent(); // Détail ligne
 
-        // Scrollbar panel pour la liste
-        JScrollPane scrollPane = new JScrollPane(itemList);
-        //scrollPane.setPreferredSize(new Dimension(300, 400));
+        // Création du JTextArea pour l'édition du G-code
+        gcodeEditor = new JTextArea();
+        gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
+        gcodeEditor.setWrapStyleWord(false);
+        gcodeEditor.setMargin(new Insets(5, 5, 5, 5));
 
-        // Zone de texte pour afficher ou éditer la ligne sélectionnée
-        JTextField selectedItemField = new JTextField();
-        //selectedItemField.setPreferredSize(new Dimension(280, 30));
+        // Ajout d’un scroll
+        JScrollPane editorScrollPane = new JScrollPane(gcodeEditor);
+        bottomLeft.setLayout(new BorderLayout());
+        bottomLeft.add(editorScrollPane, BorderLayout.CENTER);
 
-        // Bouton pour modifier l'élément sélectionné
-        JButton editButton = new JButton("Modifier");
+        // Zone de détail dans le panneau de droite
+        JTextArea detailArea = new JTextArea();
+        detailArea.setEditable(false);
+        detailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane detailScroll = new JScrollPane(detailArea);
+        bottomRight.setLayout(new BorderLayout());
+        bottomRight.add(detailScroll, BorderLayout.CENTER);
 
-        // Evénement bouton Modifier
-        editButton.addActionListener(e -> {
-            int indexListGCode = itemList.getSelectedIndex();
-            if (indexListGCode >= 0) { // On fait quelque chose seulement si un élément est sélectionné
-                listModel.set(indexListGCode, selectedItemField.getText()); // On remplace le texte d'origine
+        // Initialisation à partir du listModel (ancien contenu)
+        for (int i = 0; i < listModel.size(); i++) {
+            gcodeEditor.append(listModel.getElementAt(i) + "\n");
+        }
+
+        // Affichage de la ligne courante dans le panneau de droite
+        gcodeEditor.addCaretListener(e -> {
+            try {
+                int caretPos = gcodeEditor.getCaretPosition();
+                int line = gcodeEditor.getLineOfOffset(caretPos);
+                int start = gcodeEditor.getLineStartOffset(line);
+                int end = gcodeEditor.getLineEndOffset(line);
+                String currentLine = gcodeEditor.getText().substring(start, end).trim();
+                detailArea.setText("Détail de la ligne sélectionnée :\n\n" + currentLine);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
             }
         });
-
-        // Ecoute jusqu'au clic dans la liste
-        itemList.addListSelectionListener(new ListSelectionListener() { // Ecouteur d'événement à la liste
-            public void valueChanged(ListSelectionEvent e) { // Méthode déclenché sur changement de sélection
-                if (!e.getValueIsAdjusting()) { // !! sécurité pour n'avoir qu'un seul événement à la fois
-                    String selected = itemList.getSelectedValue();  // Récupère le texte
-                    selectedItemField.setText(selected);            // Affiche le texte
-                }
-            }
-        });
-
-        // Disposition des éléments
-        bottomLeft.setLayout(new BorderLayout()); // 5 zones (Nord Sud Centre Est Ouest)
-        bottomLeft.add(scrollPane, BorderLayout.CENTER); //Centre le G-Code
-
-        JPanel bottomControls = new JPanel(); // sous conteneur
-        bottomControls.setLayout(new BorderLayout());
-        bottomControls.add(selectedItemField, BorderLayout.CENTER);
-        bottomControls.add(editButton, BorderLayout.EAST);
-
-        bottomLeft.add(bottomControls, BorderLayout.SOUTH);
     }
 
     private void openGCodeFile() {
@@ -201,12 +207,12 @@ public class MainWindow extends JFrame {
 
                 @Override
                 protected void done() {
-                    listModel.clear();
+                    gcodeEditor.setText(""); // Vide le contenu
                     for (String item : tempData) {
-                        listModel.addElement(item);
+                        gcodeEditor.append(item + "\n");
                     }
-                    setCursor(Cursor.getDefaultCursor()); // Curseur normal
-                }
+                    setCursor(Cursor.getDefaultCursor());
+}
             };
 
             worker.execute();
