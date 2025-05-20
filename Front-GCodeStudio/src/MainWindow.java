@@ -23,8 +23,7 @@ public class MainWindow extends JFrame {
     private String fullPathGCode = "";
     private java.util.List<String> tempData;  // variable temporaire pour stocker les données CSV
     private JTextArea gcodeEditor;
-    private DefaultTableModel tableModel;
-    private JTable table;
+    private JTextArea lineInfoArea;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -128,25 +127,42 @@ public class MainWindow extends JFrame {
     }
 
     private void setupListForGCode(JSplitPane mainSplit) {
-        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();  // Liste GCode
-        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent(); // Détail ligne
+        // Colonne gauche = nouvelle verticale : éditeur G-code + infos
+        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();
+        bottomLeft.setLayout(new BorderLayout());
+        bottomLeft.add(leftSplit, BorderLayout.CENTER);
 
-        // Création du JTextArea pour l'édition du G-code
+        // Éditeur G-code (haut)
         gcodeEditor = new JTextArea();
         gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 14));
         gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
         gcodeEditor.setWrapStyleWord(false);
         gcodeEditor.setMargin(new Insets(5, 5, 5, 5));
+        gcodeEditor.setBackground(Color.LIGHT_GRAY);
+        JScrollPane gcodeScrollPane = new JScrollPane(gcodeEditor);
 
-        // Ajout d’un scroll
-        JScrollPane editorScrollPane = new JScrollPane(gcodeEditor);
-        bottomLeft.setLayout(new BorderLayout());
-        bottomLeft.add(editorScrollPane, BorderLayout.CENTER);
+        // Infos ligne (bas)
+        lineInfoArea = new JTextArea();
+        lineInfoArea.setEditable(false);
+        lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        lineInfoArea.setBackground(Color.BLACK);
+        lineInfoArea.setForeground(Color.WHITE);
+        lineInfoArea.setCaretColor(Color.WHITE);
+        JScrollPane lineInfoScroll = new JScrollPane(lineInfoArea);
+
+        leftSplit.setTopComponent(gcodeScrollPane);
+        leftSplit.setBottomComponent(lineInfoScroll);
+        leftSplit.setResizeWeight(0.8); // 80% éditeur, 20% infos
+
+        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent(); // Détail ligne
 
         // Zone de détail dans le panneau de droite
         JTextArea detailArea = new JTextArea();
         detailArea.setEditable(false);
         detailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        detailArea.setBackground(Color.BLACK);
+        detailArea.setForeground(Color.WHITE);
         JScrollPane detailScroll = new JScrollPane(detailArea);
         bottomRight.setLayout(new BorderLayout());
         bottomRight.add(detailScroll, BorderLayout.CENTER);
@@ -160,13 +176,14 @@ public class MainWindow extends JFrame {
         gcodeEditor.addCaretListener(e -> {
             try {
                 int caretPos = gcodeEditor.getCaretPosition();
-                int line = gcodeEditor.getLineOfOffset(caretPos);
-                int start = gcodeEditor.getLineStartOffset(line);
-                int end = gcodeEditor.getLineEndOffset(line);
-                String currentLine = gcodeEditor.getText().substring(start, end).trim();
-                detailArea.setText("Détail de la ligne sélectionnée :\n\n" + currentLine);
+                int lineNum = gcodeEditor.getLineOfOffset(caretPos);
+                int start = gcodeEditor.getLineStartOffset(lineNum);
+                int end = gcodeEditor.getLineEndOffset(lineNum);
+                String lineText = gcodeEditor.getText(start, end - start).trim();
+
+                lineInfoArea.setText("Ligne active :\t" + lineText);
             } catch (BadLocationException ex) {
-                ex.printStackTrace();
+                lineInfoArea.setText("Impossible de récupérer la ligne.");
             }
         });
     }
@@ -212,7 +229,7 @@ public class MainWindow extends JFrame {
                         gcodeEditor.append(item + "\n");
                     }
                     setCursor(Cursor.getDefaultCursor());
-}
+                }
             };
 
             worker.execute();
