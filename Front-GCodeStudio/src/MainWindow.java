@@ -21,7 +21,7 @@ public class MainWindow extends JFrame {
     private boolean STLIsOpen = false;
     private String fullPathSTL = "";
     private String fullPathGCode = "";
-    private java.util.List<String> tempData;  // variable temporaire pour stocker les données CSV
+    private java.util.List<String[]> tempData;  // variable temporaire pour stocker toutes les colonnes CSV
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
 
@@ -155,18 +155,6 @@ public class MainWindow extends JFrame {
         leftSplit.setBottomComponent(lineInfoScroll);
         leftSplit.setResizeWeight(0.8); // 80% éditeur, 20% infos
 
-        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent(); // Détail ligne
-
-        // Zone de détail dans le panneau de droite
-        JTextArea detailArea = new JTextArea();
-        detailArea.setEditable(false);
-        detailArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        detailArea.setBackground(Color.BLACK);
-        detailArea.setForeground(Color.WHITE);
-        JScrollPane detailScroll = new JScrollPane(detailArea);
-        bottomRight.setLayout(new BorderLayout());
-        bottomRight.add(detailScroll, BorderLayout.CENTER);
-
         // Initialisation à partir du listModel (ancien contenu)
         for (int i = 0; i < listModel.size(); i++) {
             gcodeEditor.append(listModel.getElementAt(i) + "\n");
@@ -177,11 +165,77 @@ public class MainWindow extends JFrame {
             try {
                 int caretPos = gcodeEditor.getCaretPosition();
                 int lineNum = gcodeEditor.getLineOfOffset(caretPos);
-                int start = gcodeEditor.getLineStartOffset(lineNum);
-                int end = gcodeEditor.getLineEndOffset(lineNum);
-                String lineText = gcodeEditor.getText(start, end - start).trim();
 
-                lineInfoArea.setText("Ligne active :\t" + lineText);
+                if (lineNum >= 0 && lineNum < tempData.size()) {
+                    String[] row = tempData.get(lineNum);
+                    StringBuilder details = new StringBuilder();
+
+                    // Nom des champs
+                    String[] labels = {
+                        "Ligne active:",
+                        "",
+                        "N° outil:",
+                        "",
+                        "Temps",
+                        "Durée",
+                        "",
+                        "Avance",
+                        "Rotation",
+                        "",
+                        "Mouvement",
+                        "Distance",
+                        "Position X",
+                        "Position Y",
+                        "Position Z",
+                        "Rayon"
+                    };
+                    int[] columnIndices = {
+                        0,     // Ligne
+                        -1,    // Vide
+                        1,     // Numéro outil
+                        -1,    // Vide
+                        11,     // Temps
+                        10,     // Durée
+                        -1,     // Vide
+                        9,     // Avance
+                        9,     // Rotation --> TODO in python
+                        -1,     // Vide
+                        2,     // Mouvement
+                        7,      // Distance
+                        3,     // X
+                        4,     // Y
+                        5,     // Z
+                        6     // Rayon
+                    };
+
+                    int padding = 20;  // position à laquelle commencent les valeurs
+
+                    for (int i = 0; i < labels.length; i++) {
+                        if (columnIndices[i] == -1) {
+                            details.append("\n");  // ligne vide
+                        } else if (columnIndices[i] < row.length) {
+                            String label = labels[i];
+                            String value = row[columnIndices[i]];
+                            
+                            // calculer le nombre d'espaces à ajouter après le label
+                            int spacesToAdd = Math.max(1, padding - label.length());
+                            StringBuilder line = new StringBuilder(label);
+                            for (int s = 0; s < spacesToAdd; s++) {
+                                line.append(' ');
+                            }
+                            line.append(": ").append(value).append("\n");
+
+                            details.append(line.toString());
+                        } else {
+                            details.append(labels[i]).append(" : (donnée manquante)\n");
+                        }
+                    }
+
+                    lineInfoArea.setText(details.toString());
+                } else {
+                    lineInfoArea.setText("Aucune donnée pour cette ligne.");
+                }
+
             } catch (BadLocationException ex) {
                 lineInfoArea.setText("Impossible de récupérer la ligne.");
             }
@@ -217,16 +271,18 @@ public class MainWindow extends JFrame {
                     Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
                     Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
 
-                    tempData = loadCSVColumnToList(tempGCodePath.toFile());
+                    tempData = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
 
                     return null;
                 }
 
                 @Override
                 protected void done() {
-                    gcodeEditor.setText(""); // Vide le contenu
-                    for (String item : tempData) {
-                        gcodeEditor.append(item + "\n");
+                    gcodeEditor.setText("");
+                    for (String[] row : tempData) {
+                        if (row.length > 0) {
+                            gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
+                        }
                     }
                     setCursor(Cursor.getDefaultCursor());
                 }
@@ -237,17 +293,14 @@ public class MainWindow extends JFrame {
     }
 
     // Charge les données CSV dans une liste String sans toucher à l'UI (thread swing) --> évite les erreurs sporadique au chargement du GCode
-    private java.util.List<String> loadCSVColumnToList(File csvFile) {
-        java.util.List<String> dataList = new java.util.ArrayList<>(); //Création de la liste 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) { //Ouverutre csv pour lecture
-            String header = br.readLine();  // Ignore entête
-
+    private java.util.List<String[]> loadCSVToList(File csvFile) {
+        java.util.List<String[]> dataList = new java.util.ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            br.readLine(); // Ignore entête
             String line;
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(","); // Séparateur
-                if (values.length > 0) {
-                    dataList.add(values[0]); // Ajoute colonne 1
-                }
+                String[] values = line.split(",");
+                dataList.add(values);  // Ajoute la ligne complète (tableau de colonnes)
             }
         } catch (Exception e) {
             e.printStackTrace();
