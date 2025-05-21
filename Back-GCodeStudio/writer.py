@@ -292,8 +292,6 @@ class Writer:
                     productive_time_sum = 0.0
                     distance_sum = 0.0
                     distance_in_material_sum = 0.0
-
-                cumulative_time += entry.time * 60
                 
                 time_sum += entry.time
                 productive_time_sum += entry.productive_time
@@ -327,5 +325,7 @@ class Writer:
                         'Cumulative Duration (s)': round(cumulative_time, self.digit_after_point_time),
                         'Spindle speed': int(entry.spindlespeed)
                     })
+                
+                cumulative_time += entry.time * 60
 
 

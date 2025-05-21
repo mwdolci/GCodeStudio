@@ -191,14 +191,14 @@ public class MainWindow extends JFrame {
                     //Substitution textes
                     if (row.length > 2 && "RAPID_MOVE".equals(row[2])) {row[2] = "Rapide";}
                     if (row.length > 2 && "LINEAR_MOVE".equals(row[2])) {row[2] = "Linéaire";}
-                    if (row.length > 2 && "CIRCULAR_MOVE_CW".equals(row[2])) {row[2] = "Circulaire sens horaire";}
-                    if (row.length > 2 && "CIRCULAR_MOVE_CCW".equals(row[2])) {row[2] = "Circulaire sens anti-horaire";}
+                    if (row.length > 2 && "CIRCULAR_MOVE_CW".equals(row[2])) {row[2] = "Circulaire (horaire)";}
+                    if (row.length > 2 && "CIRCULAR_MOVE_CCW".equals(row[2])) {row[2] = "Circulaire (anti-horaire)";}
 
                     // Nom des champs
                     String[] labels = {
                         //"Ligne active:",
                         //"",
-                        "N° outil:",
+                        "N° outil",
                         "",
                         "Temps",
                         "Durée",
@@ -232,7 +232,7 @@ public class MainWindow extends JFrame {
                         6      // Rayon
                     };
 
-                    int padding = 20;  // position à laquelle commencent les valeurs
+                    int padding = 14;  // position à laquelle commencent les valeurs
 
                     for (int i = 0; i < labels.length; i++) {
                         if (columnIndices[i] == -1) {
@@ -373,7 +373,7 @@ public class MainWindow extends JFrame {
     private String formatDuration(String valueSeconds) {
         double totalSecondsDouble = Double.parseDouble(valueSeconds);
 
-        if (totalSecondsDouble < 1.0) {
+        if (totalSecondsDouble < 60.0) {
             // Détecter le nombre de décimales dans la chaîne d'origine
             int decimals = 0;
             int indexOfDot = valueSeconds.indexOf('.');
@@ -381,15 +381,12 @@ public class MainWindow extends JFrame {
                 decimals = valueSeconds.length() - indexOfDot - 1;
             }
 
-            // Limiter les décimales à 3 max, sinon garder telles quelles
+            // Limiter les décimales à 3 max
             if (decimals == 1) {
-                // Afficher avec 1 décimale, force séparateur --> .
                 return String.format(Locale.US, "%.1f sec.", totalSecondsDouble);
             } else if (decimals == 2) {
-                // Afficher avec 2 décimales, force séparateur --> .
                 return String.format(Locale.US, "%.2f sec.", totalSecondsDouble);
             } else {
-                // Afficher avec 3 décimales, force séparateur --> .
                 return String.format(Locale.US, "%.3f sec.", totalSecondsDouble);
             }
         }
