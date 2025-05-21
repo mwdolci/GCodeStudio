@@ -66,8 +66,10 @@ public class MainWindow extends JFrame {
 
         menuFile.add(itemOpenGCode);
         menuFile.add(itemOpenSTL);
-        menuFile.add(itemSaveGCode);
-        menuFile.add(itemSaveGCodeAs);
+
+        //Pour version évoluée
+        //menuFile.add(itemSaveGCode);
+        //menuFile.add(itemSaveGCodeAs);
 
         // *Liste Fonctions*
         JMenu menuFunctions = new JMenu("Fonctions");
@@ -140,13 +142,14 @@ public class MainWindow extends JFrame {
         gcodeEditor.setWrapStyleWord(false);
         gcodeEditor.setMargin(new Insets(5, 5, 5, 5));
         gcodeEditor.setBackground(Color.LIGHT_GRAY);
+        gcodeEditor.setEditable(false); // Verrouiller dans version 1.0
         JScrollPane gcodeScrollPane = new JScrollPane(gcodeEditor);
 
         // Infos ligne (bas)
         lineInfoArea = new JTextArea();
         lineInfoArea.setEditable(false);
         lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        lineInfoArea.setBackground(Color.BLACK);
+        lineInfoArea.setBackground(new Color(30, 30, 30));
         lineInfoArea.setForeground(Color.WHITE);
         lineInfoArea.setCaretColor(Color.WHITE);
         JScrollPane lineInfoScroll = new JScrollPane(lineInfoArea);
@@ -194,18 +197,18 @@ public class MainWindow extends JFrame {
                         -1,    // Vide
                         1,     // Numéro outil
                         -1,    // Vide
-                        11,     // Temps
-                        10,     // Durée
-                        -1,     // Vide
+                        11,    // Temps
+                        10,    // Durée
+                        -1,    // Vide
                         9,     // Avance
                         9,     // Rotation --> TODO in python
-                        -1,     // Vide
+                        -1,    // Vide
                         2,     // Mouvement
-                        7,      // Distance
+                        7,     // Distance
                         3,     // X
                         4,     // Y
                         5,     // Z
-                        6     // Rayon
+                        6      // Rayon
                     };
 
                     int padding = 20;  // position à laquelle commencent les valeurs

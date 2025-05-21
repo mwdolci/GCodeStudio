@@ -3,7 +3,7 @@ import javax.swing.SwingUtilities;
 
 // Pour lancer en bash:
 //javac *.java
-//java Main
+//java Main.java
 
 public class Main {
 
