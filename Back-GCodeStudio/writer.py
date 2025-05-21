@@ -278,7 +278,8 @@ class Writer:
                 'Distance in Material (mm)',
                 'Feedrate',
                 'Duration (s)',
-                'Cumulative Duration (s)'
+                'Cumulative Duration (s)',
+                'Spindle speed'
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -323,7 +324,8 @@ class Writer:
                         'Distance in Material (mm)': round(entry.distance_in_material, self.digit_after_point_distance),
                         'Feedrate': feedrate,
                         'Duration (s)': round(entry.time * 60, self.digit_after_point_time),
-                        'Cumulative Duration (s)': round(cumulative_time, self.digit_after_point_time)
+                        'Cumulative Duration (s)': round(cumulative_time, self.digit_after_point_time),
+                        'Spindle speed': int(entry.spindlespeed)
                     })
 
 

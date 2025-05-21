@@ -41,6 +41,7 @@ class Interpreter:
             pattern_move = re.compile(r'G([0-3])\b') #TODO: Gérer les doubles digit G00, G01, ...
             pattern_mode = re.compile(r'G(90|91)')
             pattern_m6 = re.compile(r'\bM6\b')
+            pattern_s = re.compile(r'S(\d+)')
 
             for line in gcode_file:
 
@@ -56,6 +57,7 @@ class Interpreter:
                 match_move = pattern_move.search(line)
                 match_mode = pattern_mode.search(line)
                 match_m6 = pattern_m6.search(line)
+                match_s = pattern_s.search(line)
 
                 if match_x:
                     position_x = float(match_x.group(1))    #Si X est présent dans la ligne je le mémorise
@@ -122,8 +124,13 @@ class Interpreter:
 
                 if match_m6:
                     time = time + (self.change_tool_time/60)
+
+                if match_s:
+                    spindleSpeed = float(match_s.group(1))
+                else:
+                    spindleSpeed = obj_modal.spindleSpeed
                     
-                obj_line = Line(line, tool, distance, distance_in_material, time, productive_time, move_type, radius, feedrate, position_x, position_y, position_z) # Instanciation de l'objet
+                obj_line = Line(line, tool, distance, distance_in_material, time, productive_time, move_type, radius, feedrate, position_x, position_y, position_z, spindleSpeed) # Instanciation de l'objet
                 lines.append(obj_line) # Ajout de l'objet à la liste
 
                 #Mise à jour de l'objet Modal pour prochaine itération
@@ -135,6 +142,7 @@ class Interpreter:
                 obj_modal.tool_number = tool
                 obj_modal.gcode_group01 = move
                 obj_modal.gcode_group02 = mode
+                obj_modal.spindleSpeed = spindleSpeed
 
         return lines
 
@@ -222,6 +230,7 @@ class Modal:
             self.position_x = Machine.data["machine"]["refx"]
             self.position_y = Machine.data["machine"]["refy"]
             self.position_z = Machine.data["machine"]["refz"]
+            self.spindleSpeed = Machine.data["machine"]["spindlespeed"]
         except KeyError:
             raise ValueError("MachineConfigError: une clé est absente dans le fichier JSON")
         
@@ -231,7 +240,7 @@ class Modal:
 class Line:
     """Classe qui permet de mémoriser le contenu utile au rapport des lignes du G-Code"""
 
-    def __init__(self, g_code_line, tool_number, distance, distance_in_material, time, productive_time, move_type, radius, feedrate, endpoint_x, endpoint_y, endpoint_z):
+    def __init__(self, g_code_line, tool_number, distance, distance_in_material, time, productive_time, move_type, radius, feedrate, endpoint_x, endpoint_y, endpoint_z, spindlespeed):
         self.g_code_line = g_code_line
         self.tool_number = tool_number
         self.distance = distance
@@ -244,6 +253,7 @@ class Line:
         self.endpoint_x = endpoint_x
         self.endpoint_y = endpoint_y
         self.endpoint_z = endpoint_z
+        self.spindlespeed = spindlespeed
 
 
 class MoveType(Enum):

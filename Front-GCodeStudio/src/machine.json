@@ -9,9 +9,10 @@
 	"machine": {
 		"rapidfeedrate": 25000,
 		"changetooltime": 2.5,
-    "refx": 0,
-    "refy": 0,
-    "refz": 100,
-    "defaultmovetype": "G90"
+		"refx": 0,
+		"refy": 0,
+		"refz": 100,
+		"spindlespeed": 0,
+		"defaultmovetype": "G90"
 	}
 }

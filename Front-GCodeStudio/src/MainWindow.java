@@ -201,7 +201,7 @@ public class MainWindow extends JFrame {
                         10,    // Durée
                         -1,    // Vide
                         9,     // Avance
-                        9,     // Rotation --> TODO in python
+                        12,    // Rotation
                         -1,    // Vide
                         2,     // Mouvement
                         7,     // Distance
