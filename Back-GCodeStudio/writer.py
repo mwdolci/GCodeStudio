@@ -322,7 +322,7 @@ class Writer:
                         'Radius': radius,
                         'Distance (mm)': round(entry.distance, self.digit_after_point_distance),
                         'Distance in Material (mm)': round(entry.distance_in_material, self.digit_after_point_distance),
-                        'Feedrate': feedrate,
+                        'Feedrate': int(feedrate),
                         'Duration (s)': round(entry.time * 60, self.digit_after_point_time),
                         'Cumulative Duration (s)': round(cumulative_time, self.digit_after_point_time),
                         'Spindle speed': int(entry.spindlespeed)

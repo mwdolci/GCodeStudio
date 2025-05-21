@@ -8,10 +8,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -130,12 +132,14 @@ public class MainWindow extends JFrame {
 
     private void setupListForGCode(JSplitPane mainSplit) {
         // Colonne gauche = nouvelle verticale : éditeur G-code + infos
-        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        JSplitPane leftSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        leftSplit.setDividerSize(2);
+
         JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();
         bottomLeft.setLayout(new BorderLayout());
         bottomLeft.add(leftSplit, BorderLayout.CENTER);
 
-        // Éditeur G-code (haut)
+        // Éditeur G-code (gauche)
         gcodeEditor = new JTextArea();
         gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 14));
         gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
@@ -145,7 +149,7 @@ public class MainWindow extends JFrame {
         gcodeEditor.setEditable(false); // Verrouiller dans version 1.0
         JScrollPane gcodeScrollPane = new JScrollPane(gcodeEditor);
 
-        // Infos ligne (bas)
+        // Infos ligne (droite)
         lineInfoArea = new JTextArea();
         lineInfoArea.setEditable(false);
         lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -156,7 +160,7 @@ public class MainWindow extends JFrame {
 
         leftSplit.setTopComponent(gcodeScrollPane);
         leftSplit.setBottomComponent(lineInfoScroll);
-        leftSplit.setResizeWeight(0.8); // 80% éditeur, 20% infos
+        leftSplit.setResizeWeight(0.6); // 60% éditeur, 40% infos
 
         // Initialisation à partir du listModel (ancien contenu)
         for (int i = 0; i < listModel.size(); i++) {
@@ -166,17 +170,34 @@ public class MainWindow extends JFrame {
         // Affichage de la ligne courante dans le panneau de droite
         gcodeEditor.addCaretListener(e -> {
             try {
+                if (tempData == null) {
+                    lineInfoArea.setText("Aucune donnée chargée.");
+                    return;
+                }
+
                 int caretPos = gcodeEditor.getCaretPosition();
                 int lineNum = gcodeEditor.getLineOfOffset(caretPos);
+
+                // Surlignage ligne active
+                gcodeEditor.getHighlighter().removeAllHighlights();
+                int startOffset = gcodeEditor.getLineStartOffset(lineNum);
+                int endOffset = gcodeEditor.getLineEndOffset(lineNum);
+                gcodeEditor.getHighlighter().addHighlight(startOffset, endOffset, new DefaultHighlighter.DefaultHighlightPainter(new Color(255, 255, 150)));
 
                 if (lineNum >= 0 && lineNum < tempData.size()) {
                     String[] row = tempData.get(lineNum);
                     StringBuilder details = new StringBuilder();
 
+                    //Substitution textes
+                    if (row.length > 2 && "RAPID_MOVE".equals(row[2])) {row[2] = "Rapide";}
+                    if (row.length > 2 && "LINEAR_MOVE".equals(row[2])) {row[2] = "Linéaire";}
+                    if (row.length > 2 && "CIRCULAR_MOVE_CW".equals(row[2])) {row[2] = "Circulaire sens horaire";}
+                    if (row.length > 2 && "CIRCULAR_MOVE_CCW".equals(row[2])) {row[2] = "Circulaire sens anti-horaire";}
+
                     // Nom des champs
                     String[] labels = {
-                        "Ligne active:",
-                        "",
+                        //"Ligne active:",
+                        //"",
                         "N° outil:",
                         "",
                         "Temps",
@@ -193,8 +214,8 @@ public class MainWindow extends JFrame {
                         "Rayon"
                     };
                     int[] columnIndices = {
-                        0,     // Ligne
-                        -1,    // Vide
+                        //0,     // Ligne
+                        //-1,    // Vide
                         1,     // Numéro outil
                         -1,    // Vide
                         11,    // Temps
@@ -219,6 +240,20 @@ public class MainWindow extends JFrame {
                         } else if (columnIndices[i] < row.length) {
                             String label = labels[i];
                             String value = row[columnIndices[i]];
+
+                            if ("Temps".equals(label) || "Durée".equals(label)) {
+                                value = formatDuration(value);
+                            } else if ("Avance".equals(label)) {
+                                value = value + " mm/min";
+                            } else if ("Distance".equals(label)) {
+                                value = value + " mm";
+                            } else if ("Rotation".equals(label)) {
+                                value = value + " rpm";
+                            } else if (label.startsWith("Position")) {
+                                value = value + " mm";
+                            } else if ("Rayon".equals(label)) {
+                                value = value + " mm";
+                            }
                             
                             // calculer le nombre d'espaces à ajouter après le label
                             int spacesToAdd = Math.max(1, padding - label.length());
@@ -287,6 +322,7 @@ public class MainWindow extends JFrame {
                             gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
                         }
                     }
+                    gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
                     setCursor(Cursor.getDefaultCursor());
                 }
             };
@@ -332,5 +368,43 @@ public class MainWindow extends JFrame {
 
             PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
         }
+    }
+
+    private String formatDuration(String valueSeconds) {
+        double totalSecondsDouble = Double.parseDouble(valueSeconds);
+
+        if (totalSecondsDouble < 1.0) {
+            // Détecter le nombre de décimales dans la chaîne d'origine
+            int decimals = 0;
+            int indexOfDot = valueSeconds.indexOf('.');
+            if (indexOfDot >= 0) {
+                decimals = valueSeconds.length() - indexOfDot - 1;
+            }
+
+            // Limiter les décimales à 3 max, sinon garder telles quelles
+            if (decimals == 1) {
+                // Afficher avec 1 décimale, force séparateur --> .
+                return String.format(Locale.US, "%.1f sec.", totalSecondsDouble);
+            } else if (decimals == 2) {
+                // Afficher avec 2 décimales, force séparateur --> .
+                return String.format(Locale.US, "%.2f sec.", totalSecondsDouble);
+            } else {
+                // Afficher avec 3 décimales, force séparateur --> .
+                return String.format(Locale.US, "%.3f sec.", totalSecondsDouble);
+            }
+        }
+
+        int totalSeconds = (int) Math.round(totalSecondsDouble);
+
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        StringBuilder sb = new StringBuilder();
+        if (hours > 0) sb.append(hours).append("h ");
+        if (minutes > 0 || hours > 0) sb.append(minutes).append("min. ");
+        sb.append(seconds).append("sec.");
+
+        return sb.toString().trim();
     }
 }
