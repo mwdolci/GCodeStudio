@@ -26,6 +26,11 @@ public class MainWindow extends JFrame {
     private java.util.List<String[]> tempData;  // variable temporaire pour stocker toutes les colonnes CSV
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
+    private JTextArea topLeftTextArea;
+    private JTextArea topRightTextArea;
+    private JTextArea bottomRightTextArea;
+    Color backgroundColor = new Color(30, 30, 30);
+    Color borderColor = Color.WHITE;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -35,7 +40,10 @@ public class MainWindow extends JFrame {
         initializeWindow();
         setupMenu();
         JSplitPane mainSplit = setupPanels();
-        setupListForGCode(mainSplit);
+        setupTopLeft(mainSplit);
+        setupTopRight(mainSplit);
+        setupBottomLeft(mainSplit);
+        setupBottomRight(mainSplit);
         setVisible(true);
     }
 
@@ -90,16 +98,15 @@ public class MainWindow extends JFrame {
         setJMenuBar(menuBar);
     }
 
+    // 4 Panels
     private JSplitPane setupPanels() {
-        Color backgroundColor = new Color(30, 30, 30);
-        Color borderColor = Color.WHITE;
-
         // Création des 4 panneaux
         JPanel topLeft = new JPanel();
         JPanel topRight = new JPanel();
         JPanel bottomLeft = new JPanel();
         JPanel bottomRight = new JPanel();
 
+        // Apparence des 4 panneaux
         JPanel[] panels = { topLeft, topRight, bottomLeft, bottomRight };
         for (JPanel panel : panels) {
             panel.setBackground(backgroundColor);
@@ -130,8 +137,28 @@ public class MainWindow extends JFrame {
         return mainSplit;
     }
 
-    private void setupListForGCode(JSplitPane mainSplit) {
-        // Colonne gauche = nouvelle verticale : éditeur G-code + infos
+    // Panel en haut à gauche
+    private void setupTopLeft(JSplitPane mainSplit) {
+        // Récupération du panneau haut gauche à partir du JSplitPane principal
+        JPanel topLeft = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getLeftComponent();
+
+        // Config panneau haut gauche
+        topLeft.setLayout(new BorderLayout());
+        topLeftTextArea = new JTextArea();
+        topLeftTextArea.setEditable(false);
+        topLeftTextArea.setForeground(Color.WHITE);
+        topLeftTextArea.setBackground(backgroundColor);
+        topLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        topLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPaneTopLeft = new JScrollPane(topLeftTextArea);
+        topLeft.add(scrollPaneTopLeft, BorderLayout.CENTER);
+        topLeftTextArea.setText("texte");
+    }
+
+    // Panel en bas à gauche
+    private void setupBottomLeft(JSplitPane mainSplit) {
+        // Colonne gauche = éditeur G-code + infos
         JSplitPane leftSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftSplit.setDividerSize(2);
 
@@ -259,7 +286,7 @@ public class MainWindow extends JFrame {
                             int spacesToAdd = Math.max(1, padding - label.length());
                             StringBuilder line = new StringBuilder(label);
                             for (int s = 0; s < spacesToAdd; s++) {
-                                line.append(' ');
+                                line.append(' '); // ajoute le nombre d'espaces nécessaires
                             }
                             line.append(": ").append(value).append("\n");
 
@@ -278,6 +305,44 @@ public class MainWindow extends JFrame {
                 lineInfoArea.setText("Impossible de récupérer la ligne.");
             }
         });
+    }
+
+    // Panel en haut à droite
+    private void setupTopRight(JSplitPane mainSplit) {
+        // Récupération du panneau haut droit à partir du JSplitPane principal
+        JPanel topRight = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getRightComponent();
+ 
+        // Config panneau haut droite
+        topRight.setLayout(new BorderLayout());
+        topRightTextArea = new JTextArea();
+        topRightTextArea.setEditable(false);
+        topRightTextArea.setForeground(Color.WHITE);
+        topRightTextArea.setBackground(backgroundColor);
+        topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
+        topRight.add(scrollPaneTopRight, BorderLayout.CENTER);
+        topRightTextArea.setText("texte en haut à droite");
+    }
+
+    // Panel en bas à droite
+    private void setupBottomRight(JSplitPane mainSplit) {
+        // Récupération du panneau haut droit à partir du JSplitPane principal
+        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent();
+
+        // Config panneau bas droite
+        bottomRight.setLayout(new BorderLayout());
+        bottomRightTextArea = new JTextArea();
+        bottomRightTextArea.setEditable(false);
+        bottomRightTextArea.setForeground(Color.WHITE);
+        bottomRightTextArea.setBackground(backgroundColor);
+        bottomRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        bottomRightTextArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPaneBottomRight = new JScrollPane(bottomRightTextArea);
+        bottomRight.add(scrollPaneBottomRight, BorderLayout.CENTER);
+        bottomRightTextArea.setText("texte en bas à droite");
     }
 
     private void openGCodeFile() {
