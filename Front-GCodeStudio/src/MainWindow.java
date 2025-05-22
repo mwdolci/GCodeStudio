@@ -15,7 +15,6 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class MainWindow extends JFrame {
 
@@ -24,11 +23,14 @@ public class MainWindow extends JFrame {
     private String fullPathSTL = "";
     private String fullPathGCode = "";
     private java.util.List<String[]> tempData;  // variable temporaire pour stocker toutes les colonnes CSV
+    private java.util.List<String[]> tempData2;
+    private java.util.List<String[]> tempData3;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea topLeftTextArea;
     private JTextArea topRightTextArea;
     private JTextArea bottomRightTextArea;
+    private JSplitPane mainSplit;
     Color backgroundColor = new Color(30, 30, 30);
     Color borderColor = Color.WHITE;
 
@@ -39,7 +41,7 @@ public class MainWindow extends JFrame {
         super("GCodeStudio");
         initializeWindow();
         setupMenu();
-        JSplitPane mainSplit = setupPanels();
+        mainSplit = setupPanels();
         setupTopLeft(mainSplit);
         setupTopRight(mainSplit);
         setupBottomLeft(mainSplit);
@@ -142,6 +144,8 @@ public class MainWindow extends JFrame {
         // Récupération du panneau haut gauche à partir du JSplitPane principal
         JPanel topLeft = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getLeftComponent();
 
+        topLeft.removeAll();
+        
         // Config panneau haut gauche
         topLeft.setLayout(new BorderLayout());
         topLeftTextArea = new JTextArea();
@@ -153,7 +157,70 @@ public class MainWindow extends JFrame {
 
         JScrollPane scrollPaneTopLeft = new JScrollPane(topLeftTextArea);
         topLeft.add(scrollPaneTopLeft, BorderLayout.CENTER);
-        topLeftTextArea.setText("texte");
+
+        if (tempData2 == null || tempData2.isEmpty()) {
+            topLeftTextArea.setText("Aucune donnée disponible.");
+            return;
+        }
+
+        String[] row = tempData2.get(0);
+
+        String[] labels = {
+            "Fichier G-Code",
+            "Fichier 3D",
+            "",
+            "",
+            "Nombre de lignes",
+            "Durée du programme",
+            "Durée productive",
+            "Durée imporductive",
+        };
+
+        int[] columnIndices = {
+            0, -2, -1, -1, 2, 3, 4, 5  
+        };
+
+        int padding = 20;
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < labels.length; i++) {
+            if (columnIndices[i] == -1) {
+                builder.append("\n");  // ligne vide
+            } else if (columnIndices[i] == -2) {
+                // Cas spécial : on récupère le chemin du stl si chargé
+                String label = labels[i];
+                String value = fullPathSTL;
+                
+                int spaces = Math.max(1, padding - label.length());
+                builder.append(label)
+                    .append(" ".repeat(spaces))
+                    .append(": ")
+                    .append(value)
+                    .append("\n");
+            } else if (columnIndices[i] < row.length) {
+                String label = labels[i];
+                String value = row[columnIndices[i]];
+
+                if (label.startsWith("Durée")) {
+                    value = formatDuration(value);
+                }
+
+                int spaces = Math.max(1, padding - label.length());
+                builder.append(label)
+                    .append(" ".repeat(spaces))
+                    .append(": ")
+                    .append(value)
+                    .append("\n");
+            } else {
+                builder.append(labels[i]).append(" : (donnée manquante)\n");
+            }
+        }
+
+        topLeftTextArea.setText(builder.toString());
+
+        // !! Forcer le rafraichissement de la page sinon fonctionne pas
+        topLeft.revalidate();
+        topLeft.repaint();
     }
 
     // Panel en bas à gauche
@@ -373,8 +440,12 @@ public class MainWindow extends JFrame {
 
                     Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
                     Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
+                    Path tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
+                    Path tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
 
                     tempData = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
+                    tempData2 = loadCSVToList(tempInfoProgramPath.toFile());
+                    tempData3 = loadCSVToList(tempInfoToolsPath.toFile());
 
                     return null;
                 }
@@ -389,6 +460,7 @@ public class MainWindow extends JFrame {
                     }
                     gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
                     setCursor(Cursor.getDefaultCursor());
+                    setupTopLeft(mainSplit);
                 }
             };
 
@@ -430,6 +502,8 @@ public class MainWindow extends JFrame {
             String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
                
             STLIsOpen = true;
+
+            setupTopLeft(mainSplit); // On recharge le panel pour affichage du nom du stl
 
             PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
         }
