@@ -25,6 +25,7 @@ public class MainWindow extends JFrame {
     private java.util.List<String[]> tempData;  // variable temporaire pour stocker toutes les colonnes CSV
     private java.util.List<String[]> tempData2;
     private java.util.List<String[]> tempData3;
+    private JPanel welcomePanel;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea topLeftTextArea;
@@ -41,11 +42,9 @@ public class MainWindow extends JFrame {
         super("GCodeStudio");
         initializeWindow();
         setupMenu();
-        mainSplit = setupPanels();
-        setupTopLeft(mainSplit);
-        setupTopRight(mainSplit);
-        setupBottomLeft(mainSplit);
-        setupBottomRight(mainSplit);
+        setupWelcomePanel();
+        getContentPane().removeAll();
+        getContentPane().add(welcomePanel, BorderLayout.CENTER);
         setVisible(true);
     }
 
@@ -98,6 +97,61 @@ public class MainWindow extends JFrame {
         menuBar.add(menuOptions);
 
         setJMenuBar(menuBar);
+    }
+
+    private void setupWelcomePanel() {
+        welcomePanel = new JPanel();
+        welcomePanel.setBackground(backgroundColor);
+        welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS)); // disposition verticale
+
+        JLabel welcomeLabel = new JLabel("Bienvenue dans GCode Studio", SwingConstants.CENTER);
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 48));
+        welcomeLabel.setForeground(Color.WHITE);
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // centrer dans BoxLayout
+
+        JLabel startLabel = new JLabel("Ouvrez un programme pour commencer", SwingConstants.CENTER);
+        startLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        startLabel.setForeground(Color.WHITE);
+        startLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton openFileButton = new JButton("+");
+        openFileButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        openFileButton.setFont(new Font("Arial", Font.BOLD, 92));
+        openFileButton.setBorder(BorderFactory.createEmptyBorder()); //enlever la bordure
+        openFileButton.setFocusPainted(false);
+        openFileButton.setToolTipText("Ouvrir GCode");
+        openFileButton.setBackground(Color.GRAY); 
+        openFileButton.setForeground(Color.BLACK);
+        openFileButton.setOpaque(true);            
+
+        // Bouton carré
+        int buttonSize = 100;
+        openFileButton.setPreferredSize(new Dimension(buttonSize, buttonSize));
+        openFileButton.setMaximumSize(new Dimension(buttonSize, buttonSize));
+        openFileButton.setMinimumSize(new Dimension(buttonSize, buttonSize));
+
+        // Effet au survol
+        openFileButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                openFileButton.setBackground(openFileButton.getBackground().brighter());
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                openFileButton.setBackground(Color.GRAY);
+            }
+        });
+
+        openFileButton.addActionListener(e -> openGCodeFile());
+
+        welcomePanel.add(Box.createVerticalGlue());
+        welcomePanel.add(welcomeLabel);
+        welcomePanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        welcomePanel.add(startLabel);
+        welcomePanel.add(Box.createRigidArea(new Dimension(0, 50)));
+        welcomePanel.add(openFileButton);
+        welcomePanel.add(Box.createVerticalGlue());
     }
 
     // 4 Panels
@@ -190,6 +244,8 @@ public class MainWindow extends JFrame {
                 // Cas spécial : on récupère le chemin du stl si chargé
                 String label = labels[i];
                 String value = fullPathSTL;
+
+                if (value == "") {value = "-";}
                 
                 int spaces = Math.max(1, padding - label.length());
                 builder.append(label)
@@ -413,6 +469,16 @@ public class MainWindow extends JFrame {
     }
 
     private void openGCodeFile() {
+        
+        // Première construction graphique
+        if (mainSplit == null) {
+            mainSplit = setupPanels();
+            setupTopLeft(mainSplit);
+            setupBottomLeft(mainSplit);
+            setupTopRight(mainSplit);
+            setupBottomRight(mainSplit);
+        }
+
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Ouvrir un fichier GCode");
 
@@ -458,6 +524,11 @@ public class MainWindow extends JFrame {
                             gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
                         }
                     }
+                    getContentPane().removeAll();
+                    getContentPane().add(mainSplit, BorderLayout.CENTER);
+                    revalidate();
+                    repaint();
+
                     gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
                     setCursor(Cursor.getDefaultCursor());
                     setupTopLeft(mainSplit);
