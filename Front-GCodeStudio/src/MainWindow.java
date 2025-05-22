@@ -1,18 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
 import java.nio.file.Paths;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.nio.file.Path;
 
@@ -22,9 +16,9 @@ public class MainWindow extends JFrame {
     private boolean STLIsOpen = false;
     private String fullPathSTL = "";
     private String fullPathGCode = "";
-    private java.util.List<String[]> tempData;  // variable temporaire pour stocker toutes les colonnes CSV
-    private java.util.List<String[]> tempData2;
-    private java.util.List<String[]> tempData3;
+    private java.util.List<String[]> datasGCode;  // variable temporaire pour stocker toutes les colonnes CSV
+    private java.util.List<String[]> datasProgram;
+    private java.util.List<String[]> datasTools;
     private JPanel welcomePanel;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
@@ -183,7 +177,7 @@ public class MainWindow extends JFrame {
 
         // Split principal (haut/bas)
         JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitTop, splitBottom);
-        mainSplit.setResizeWeight(0.5);
+        mainSplit.setResizeWeight(0.3); //Partie haute 30% suffise
         mainSplit.setDividerSize(2);
         mainSplit.setBorder(null);
 
@@ -212,27 +206,15 @@ public class MainWindow extends JFrame {
         JScrollPane scrollPaneTopLeft = new JScrollPane(topLeftTextArea);
         topLeft.add(scrollPaneTopLeft, BorderLayout.CENTER);
 
-        if (tempData2 == null || tempData2.isEmpty()) {
+        if (datasProgram == null || datasProgram.isEmpty()) {
             topLeftTextArea.setText("Aucune donnée disponible.");
             return;
         }
 
-        String[] row = tempData2.get(0);
-
-        String[] labels = {
-            "Fichier G-Code",
-            "Fichier 3D",
-            "",
-            "",
-            "Nombre de lignes",
-            "Durée du programme",
-            "Durée productive",
-            "Durée imporductive",
-        };
-
-        int[] columnIndices = {
-            0, -2, -1, -1, 2, 3, 4, 5  
-        };
+        String[] row = datasProgram.get(0);
+        
+        String[] labels = {"Fichier G-Code", "Fichier 3D", "", "", "Nombre de lignes", "Durée du programme", "Durée productive", "Durée imporductive"};
+        int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
 
         int padding = 20;
         StringBuilder builder = new StringBuilder();
@@ -320,7 +302,7 @@ public class MainWindow extends JFrame {
         // Affichage de la ligne courante dans le panneau de droite
         gcodeEditor.addCaretListener(e -> {
             try {
-                if (tempData == null) {
+                if (datasGCode == null) {
                     lineInfoArea.setText("Aucune donnée chargée.");
                     return;
                 }
@@ -334,8 +316,8 @@ public class MainWindow extends JFrame {
                 int endOffset = gcodeEditor.getLineEndOffset(lineNum);
                 gcodeEditor.getHighlighter().addHighlight(startOffset, endOffset, new DefaultHighlighter.DefaultHighlightPainter(new Color(255, 255, 150)));
 
-                if (lineNum >= 0 && lineNum < tempData.size()) {
-                    String[] row = tempData.get(lineNum);
+                if (lineNum >= 0 && lineNum < datasGCode.size()) {
+                    String[] row = datasGCode.get(lineNum);
                     StringBuilder details = new StringBuilder();
 
                     //Substitution textes
@@ -345,27 +327,8 @@ public class MainWindow extends JFrame {
                     if (row.length > 2 && "CIRCULAR_MOVE_CCW".equals(row[2])) {row[2] = "Circulaire (anti-horaire)";}
 
                     // Nom des champs
-                    String[] labels = {
-                        //"Ligne active:",
-                        //"",
-                        "N° outil",
-                        "",
-                        "Temps",
-                        "Durée",
-                        "",
-                        "Avance",
-                        "Rotation",
-                        "",
-                        "Mouvement",
-                        "Distance",
-                        "Position X",
-                        "Position Y",
-                        "Position Z",
-                        "Rayon"
-                    };
+                    String[] labels = {"N° outil", "", "Temps", "Durée", "", "Avance", "Rotation", "", "Mouvement", "Distance", "Position X", "Position Y", "Position Z", "Rayon"};
                     int[] columnIndices = {
-                        //0,     // Ligne
-                        //-1,    // Vide
                         1,     // Numéro outil
                         -1,    // Vide
                         11,    // Temps
@@ -470,7 +433,7 @@ public class MainWindow extends JFrame {
 
     private void openGCodeFile() {
         
-        // Première construction graphique
+        // Première construction graphique de la fenêtre principale
         if (mainSplit == null) {
             mainSplit = setupPanels();
             setupTopLeft(mainSplit);
@@ -509,9 +472,9 @@ public class MainWindow extends JFrame {
                     Path tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
                     Path tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
 
-                    tempData = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
-                    tempData2 = loadCSVToList(tempInfoProgramPath.toFile());
-                    tempData3 = loadCSVToList(tempInfoToolsPath.toFile());
+                    datasGCode = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
+                    datasProgram = loadCSVToList(tempInfoProgramPath.toFile());
+                    datasTools = loadCSVToList(tempInfoToolsPath.toFile());
 
                     return null;
                 }
@@ -519,7 +482,7 @@ public class MainWindow extends JFrame {
                 @Override
                 protected void done() {
                     gcodeEditor.setText("");
-                    for (String[] row : tempData) {
+                    for (String[] row : datasGCode) {
                         if (row.length > 0) {
                             gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
                         }
