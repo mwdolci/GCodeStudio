@@ -81,7 +81,7 @@ public class MainWindow extends JFrame {
         JMenuItem itemCalculate = new JMenuItem("Recalculer");
         menuFunctions.add(itemCalculate);
 
-        // itemCalculate.addActionListener(e -> calculation());
+        itemCalculate.addActionListener(e -> recalculation());
 
         // *Liste Options*
         JMenu menuOptions = new JMenu("Options");
@@ -212,7 +212,7 @@ public class MainWindow extends JFrame {
         }
 
         String[] row = datasProgram.get(0);
-        
+
         String[] labels = {"Fichier G-Code", "Fichier 3D", "", "", "Nombre de lignes", "Durée du programme", "Durée productive", "Durée imporductive"};
         int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
 
@@ -450,56 +450,59 @@ public class MainWindow extends JFrame {
 
         int result = fileChooser.showOpenDialog(this); // this = parent JFrame
 
-        if (result == JFileChooser.APPROVE_OPTION) { // Si fichier sélectionné 
+        if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             fullPathGCode = selectedFile.getAbsolutePath();
-
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
-
-            // Travail en arrière-plan
-            SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
-                @Override
-                protected Void doInBackground() throws Exception {
-                    String currentDir = Paths.get("").toAbsolutePath().toString();
-                    String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-
-                    GCodeIsOpen = true;
-
-                    PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
-
-                    Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
-                    Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
-                    Path tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
-                    Path tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
-
-                    datasGCode = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
-                    datasProgram = loadCSVToList(tempInfoProgramPath.toFile());
-                    datasTools = loadCSVToList(tempInfoToolsPath.toFile());
-
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    gcodeEditor.setText("");
-                    for (String[] row : datasGCode) {
-                        if (row.length > 0) {
-                            gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
-                        }
-                    }
-                    getContentPane().removeAll();
-                    getContentPane().add(mainSplit, BorderLayout.CENTER);
-                    revalidate();
-                    repaint();
-
-                    gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
-                    setCursor(Cursor.getDefaultCursor());
-                    setupTopLeft(mainSplit);
-                }
-            };
-
-            worker.execute();
+            processLoadGCodeFile(fullPathGCode);
         }
+    }
+
+    private void processLoadGCodeFile(String filePath){
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
+
+        // Travail en arrière-plan
+        SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
+            @Override
+            protected Void doInBackground() throws Exception {
+                String currentDir = Paths.get("").toAbsolutePath().toString();
+                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+
+                GCodeIsOpen = true;
+
+                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
+
+                Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
+                Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
+                Path tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
+                Path tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
+
+                datasGCode = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
+                datasProgram = loadCSVToList(tempInfoProgramPath.toFile());
+                datasTools = loadCSVToList(tempInfoToolsPath.toFile());
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                gcodeEditor.setText("");
+                for (String[] row : datasGCode) {
+                    if (row.length > 0) {
+                        gcodeEditor.append(row[0] + "\n");  // affiche uniquement la colonne 0 (GCode) dans l'éditeur
+                    }
+                }
+                getContentPane().removeAll();
+                getContentPane().add(mainSplit, BorderLayout.CENTER);
+                revalidate();
+                repaint();
+
+                gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
+                setCursor(Cursor.getDefaultCursor());
+                setupTopLeft(mainSplit);
+            }
+        };
+
+        worker.execute();
     }
 
     // Charge les données CSV dans une liste String sans toucher à l'UI (thread swing) --> évite les erreurs sporadique au chargement du GCode
@@ -576,5 +579,18 @@ public class MainWindow extends JFrame {
         sb.append(seconds).append("sec.");
 
         return sb.toString().trim();
+    }
+
+    private void recalculation() {
+        if (fullPathGCode != null && !fullPathGCode.isEmpty()) {
+            File f = new File(fullPathGCode);
+            if (f.exists()) {
+                processLoadGCodeFile(fullPathGCode);
+            } else {
+                JOptionPane.showMessageDialog(this, "Fichier GCode déplacé ou inaccessible !");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Aucun fichier GCode chargé !");
+        }
     }
 }
