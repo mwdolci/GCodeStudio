@@ -542,7 +542,10 @@ public class MainWindow extends JFrame {
 
             setupTopLeft(mainSplit); // On recharge le panel pour affichage du nom du stl
 
-            PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
+            // Autre thread sinon l'UI se fige et la page se refraichit trop tard
+            new Thread(() -> {
+                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
+            }).start();
         }
     }
 
