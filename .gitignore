@@ -6,6 +6,10 @@ venv/
 *.txt
 *.debug
 *.class
+*.idea
+*.out
+*.target
+*.iml
 
 # sauf requirements.txt
 !requirements.txt

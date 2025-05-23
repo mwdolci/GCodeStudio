@@ -465,7 +465,7 @@ public class MainWindow extends JFrame {
             @Override
             protected Void doInBackground() throws Exception {
                 String currentDir = Paths.get("").toAbsolutePath().toString();
-                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+                String pythonScriptPath = Paths.get(currentDir, "..", "Back-GCodeStudio", "main.py").normalize().toString();
 
                 GCodeIsOpen = true;
 
@@ -536,7 +536,7 @@ public class MainWindow extends JFrame {
             fullPathSTL = selectedFile.getAbsolutePath();
                 
             String currentDir = Paths.get("").toAbsolutePath().toString();
-            String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+            String pythonScriptPath = Paths.get(currentDir, "..", "Back-GCodeStudio", "main.py").normalize().toString();
                
             STLIsOpen = true;
 
