@@ -585,6 +585,8 @@ public class MainWindow extends JFrame {
     }
 
     private void recalculation() {
+        STLIsOpen = false; // Pour ne pas ouvrir le viwer sur recalcul
+
         if (fullPathGCode != null && !fullPathGCode.isEmpty()) {
             File f = new File(fullPathGCode);
             if (f.exists()) {
