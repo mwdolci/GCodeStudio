@@ -2,5 +2,6 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="Front-GCodeStudio/src"/>
+	<classpathentry kind="lib" path="C:/Users/pyroo/MAS-RAD/CAS-IDD/03-Java/CAS-IDD_GCodeStudio/Front-GCodeStudio/lib/flatlaf-3.4.jar"/>
 	<classpathentry kind="output" path="Front-GCodeStudio/src"/>
 </classpath>
