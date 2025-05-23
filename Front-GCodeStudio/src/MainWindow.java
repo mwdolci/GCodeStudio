@@ -432,15 +432,6 @@ public class MainWindow extends JFrame {
     }
 
     private void openGCodeFile() {
-        
-        // Première construction graphique de la fenêtre principale
-        if (mainSplit == null) {
-            mainSplit = setupPanels();
-            setupTopLeft(mainSplit);
-            setupBottomLeft(mainSplit);
-            setupTopRight(mainSplit);
-            setupBottomRight(mainSplit);
-        }
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Ouvrir un fichier GCode");
@@ -451,6 +442,16 @@ public class MainWindow extends JFrame {
         int result = fileChooser.showOpenDialog(this); // this = parent JFrame
 
         if (result == JFileChooser.APPROVE_OPTION) {
+
+            // Première construction graphique de la fenêtre principale
+            if (mainSplit == null) {
+                mainSplit = setupPanels();
+                setupTopLeft(mainSplit);
+                setupBottomLeft(mainSplit);
+                setupTopRight(mainSplit);
+                setupBottomRight(mainSplit);
+            }
+
             File selectedFile = fileChooser.getSelectedFile();
             fullPathGCode = selectedFile.getAbsolutePath();
             processLoadGCodeFile(fullPathGCode);
