@@ -176,7 +176,7 @@ public class MainWindow extends JFrame {
         splitBottom.setBorder(null);
 
         // Split principal (haut/bas)
-        JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitTop, splitBottom);
+        mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitTop, splitBottom);
         mainSplit.setResizeWeight(0.3); //Partie haute 30% suffise
         mainSplit.setDividerSize(2);
         mainSplit.setBorder(null);
