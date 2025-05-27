@@ -29,6 +29,7 @@ public class MainWindow extends JFrame {
     private JTextArea topRightTextArea;
     private JTextArea bottomRightTextArea;
     private JSplitPane mainSplit;
+    private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
     Color backgroundColor = new Color(30, 30, 30);
     Color borderColor = Color.WHITE;
 
@@ -414,16 +415,29 @@ public class MainWindow extends JFrame {
 
 		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
 
-        int activeToolInGantt = linearGanttPanel.getActiveToolNumberInGantt();
-        topRightTextArea.setText("texte en haut à droite");
-
+        // Écouteur pour la sélection d'outil dans le diagramme de Gantt
+        linearGanttPanel.setToolSelectionListener(toolNumber -> {
+            selectedToolNumber = toolNumber;
+            setupTopRight(mainSplit);
+        });
 
         if (datasTools == null || datasTools.isEmpty()) {
             topLeftTextArea.setText("Aucune donnée disponible.");
             return;
         }
 
-        String[] row = datasTools.get(0);
+        String[] row = null;
+        if (selectedToolNumber == -1) {
+            row = datasTools.get(0); // Par défaut, premier outil
+        } else {
+            for (String[] r : datasTools) {
+                if (r.length > 0 && Integer.toString(selectedToolNumber).equals(r[0])) {
+                    row = r;
+                    break;
+                }
+            }
+            if (row == null) row = datasTools.get(0); // fallback si non trouvé
+        }
 
         String[] labels = {"Numéro outil", "", "Durée", "Durée productive", "Durée improductive", "", "Distance", "Distance en matière"};
         int[] columnIndices = {0, -1, 1, 2, 3, -1, 4, 5};
@@ -441,7 +455,7 @@ public class MainWindow extends JFrame {
                 if (label.startsWith("Durée")) {
                     value = formatDuration(value);
                 }
-                else {
+                else if (label.startsWith("Distance")) {
                     value = value + " mm";
                 }
 

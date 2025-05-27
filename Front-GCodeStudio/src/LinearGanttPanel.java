@@ -32,9 +32,6 @@ public class LinearGanttPanel extends JPanel {
 	private java.util.List<Rectangle> toolRects = new ArrayList<>(); // rectangles pour chaque outil
 
     private final Map<Integer, Color> toolColors = new HashMap<>(); // Equivalent à un dictionnaire numéro outil - couleur | Final = non modifiable
-    
-    private int activeToolNumber = -1; // -1 = aucun outil sélectionné dans le gantt
-
 
     // Constructeur qui charge le CSV et initialise les couleurs
     public LinearGanttPanel(String csvPath) {
@@ -53,8 +50,13 @@ public class LinearGanttPanel extends JPanel {
 						selectedToolIndex = i;
 						ToolUsage selectedTool = timeline.get(i);
 						System.out.println("Clicked Tool T" + selectedTool.toolNumber);
-						repaint(); // redessine pour mise en évidence
-                        activeToolNumber = selectedTool.toolNumber; // stocke l'outil actif
+						
+                        if (toolSelectionListener != null) {
+                            toolSelectionListener.onToolSelected(selectedTool.toolNumber);
+                        }
+
+                        repaint(); // redessine pour mise en évidence
+                        
                         break;
 					}
 				}
@@ -62,9 +64,15 @@ public class LinearGanttPanel extends JPanel {
 		});
     }
 
-    // Méthode pour obtenir le numéro de l'outil actif dans le gantt dans le MainWindow
-    public int getActiveToolNumberInGantt() {
-        return activeToolNumber;
+    // Méthode pour changer le numéro de l'outil actif dans le gantt
+    public interface ToolSelectionListener {
+        void onToolSelected(int toolNumber);
+    }
+
+    // Permet de notifier le changement d'outil sélectionné
+    private ToolSelectionListener toolSelectionListener;
+    public void setToolSelectionListener(ToolSelectionListener listener) {
+        this.toolSelectionListener = listener;
     }
 
     private void loadCSV(String path) {
