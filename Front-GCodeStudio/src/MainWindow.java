@@ -414,6 +414,7 @@ public class MainWindow extends JFrame {
 		JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
 
 		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+        linearGanttPanel.setActiveToolNumber(selectedToolNumber);
 
         // Écouteur pour la sélection d'outil dans le diagramme de Gantt
         linearGanttPanel.setToolSelectionListener(toolNumber -> {

@@ -75,6 +75,18 @@ public class LinearGanttPanel extends JPanel {
         this.toolSelectionListener = listener;
     }
 
+    public void setActiveToolNumber(int toolNumber) {
+        for (int i = 0; i < timeline.size(); i++) {
+            if (timeline.get(i).toolNumber == toolNumber) {
+                selectedToolIndex = i;
+                repaint();
+                return;
+            }
+        }
+        selectedToolIndex = -1; // aucun sélectionné si non trouvé
+        repaint();
+    }
+
     private void loadCSV(String path) {
         try (BufferedReader br = Files.newBufferedReader(Paths.get(path))) {
             String line = br.readLine(); // Prend pas en compte l'entête
