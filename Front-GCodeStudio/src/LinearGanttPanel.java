@@ -123,7 +123,9 @@ public class LinearGanttPanel extends JPanel {
         int panelHeight = getHeight();
         int barHeight = 50;
         int x = 10;
-        int y = panelHeight / 2 - barHeight / 2;
+        //int y = panelHeight / 2 - barHeight / 2;
+        int minBottomMargin = 20;
+        int y = panelHeight - barHeight - minBottomMargin;
 
         Graphics2D g2 = (Graphics2D) g; // Cast pour utiliser les méthodes avancées de Graphics2D
 		g2.setFont(new Font("SansSerif", Font.BOLD, 14));

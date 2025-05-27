@@ -181,7 +181,7 @@ public class MainWindow extends JFrame {
 
         // Split principal (haut/bas)
         mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitTop, splitBottom);
-        mainSplit.setResizeWeight(0.3); //Partie haute 30% suffise
+        mainSplit.setResizeWeight(0.4); //Partie haute 40% suffise
         mainSplit.setDividerSize(2);
         mainSplit.setBorder(null);
 
@@ -411,10 +411,13 @@ public class MainWindow extends JFrame {
 		topRightTextArea.setBackground(backgroundColor);
 		topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
+        topRightTextArea.setMinimumSize(new Dimension(60, 100));
 		JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
 
 		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+        linearGanttPanel.setMinimumSize(new Dimension(60, 100));
         linearGanttPanel.setActiveToolNumber(selectedToolNumber);
+        
 
         // Écouteur pour la sélection d'outil dans le diagramme de Gantt
         linearGanttPanel.setToolSelectionListener(toolNumber -> {
