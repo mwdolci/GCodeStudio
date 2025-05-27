@@ -467,7 +467,7 @@ public class MainWindow extends JFrame {
             // Première construction graphique de la fenêtre principale
             if (mainSplit == null) {
                  mainSplit = setupPanels();
-                 setupTopLeft(mainSplit);
+                 //setupTopLeft(mainSplit);
                  setupBottomLeft(mainSplit);
                  //setupTopRight(mainSplit);
                  setupBottomRight(mainSplit);

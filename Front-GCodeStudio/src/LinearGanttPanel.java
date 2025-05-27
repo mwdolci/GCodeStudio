@@ -35,6 +35,7 @@ public class LinearGanttPanel extends JPanel {
     public LinearGanttPanel(String csvPath) {
         loadCSV(csvPath);
         assignColors();
+        setToolTipText("");
 		
         // Ecouteur de clics de souris
 		addMouseListener(new MouseAdapter() {
@@ -128,5 +129,17 @@ public class LinearGanttPanel extends JPanel {
 
 			x += barWidth;
 		}
+    }
+
+    @Override
+    public String getToolTipText(MouseEvent e) {
+        Point p = e.getPoint();
+        for (int i = 0; i < toolRects.size(); i++) {
+            if (toolRects.get(i).contains(p)) {
+                ToolUsage usage = timeline.get(i);
+                return "Outil T" + usage.toolNumber + " : " + usage.usageTime + "s";
+            }
+        }
+        return null; // pas de tooltip
     }
 }
