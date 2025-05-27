@@ -19,6 +19,9 @@ public class MainWindow extends JFrame {
     private java.util.List<String[]> datasGCode;  // variable temporaire pour stocker toutes les colonnes CSV
     private java.util.List<String[]> datasProgram;
     private java.util.List<String[]> datasTools;
+    private Path tempGCodePath;
+    private Path tempInfoProgramPath;
+    private Path tempInfoToolsPath;
     private JPanel welcomePanel;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
@@ -393,24 +396,42 @@ public class MainWindow extends JFrame {
         });
     }
 
-    // Panel en haut à droite
-    private void setupTopRight(JSplitPane mainSplit) {
-        // Récupération du panneau haut droit à partir du JSplitPane principal
-        JPanel topRight = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getRightComponent();
- 
-        // Config panneau haut droite
+	// Panel en haut à droite
+	private void setupTopRight(JSplitPane mainSplit) {
+		JPanel topRight = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getRightComponent();
+		
+        topRight.removeAll();
+        
         topRight.setLayout(new BorderLayout());
-        topRightTextArea = new JTextArea();
-        topRightTextArea.setEditable(false);
-        topRightTextArea.setForeground(Color.WHITE);
-        topRightTextArea.setBackground(backgroundColor);
-        topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
 
-        JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
-        topRight.add(scrollPaneTopRight, BorderLayout.CENTER);
-        topRightTextArea.setText("texte en haut à droite");
-    }
+		topRightTextArea = new JTextArea();
+		topRightTextArea.setEditable(false);
+		topRightTextArea.setForeground(Color.WHITE);
+		topRightTextArea.setBackground(backgroundColor);
+		topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
+		JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
+		topRightTextArea.setText("texte en haut à droite");
+
+		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+
+		// SplitPane invisible
+		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPaneTopRight, linearGanttPanel);
+		split.setResizeWeight(0.8); // 80% texte, 20% diagramme
+		split.setDividerSize(0);   // Enlève la barre de séparation
+		split.setEnabled(false);   // Désactive la possibilité de la déplacer
+
+		// Supprimer les bordures
+		scrollPaneTopRight.setBorder(null);
+		linearGanttPanel.setBorder(null);
+		linearGanttPanel.setBackground(backgroundColor);
+
+		topRight.add(split, BorderLayout.CENTER);
+
+        // !! Forcer le rafraichissement de la page sinon fonctionne pas
+        topRight.revalidate();
+        topRight.repaint();
+	}
 
     // Panel en bas à droite
     private void setupBottomRight(JSplitPane mainSplit) {
@@ -445,12 +466,12 @@ public class MainWindow extends JFrame {
 
             // Première construction graphique de la fenêtre principale
             if (mainSplit == null) {
-                mainSplit = setupPanels();
-                setupTopLeft(mainSplit);
-                setupBottomLeft(mainSplit);
-                setupTopRight(mainSplit);
-                setupBottomRight(mainSplit);
-            }
+                 mainSplit = setupPanels();
+                 setupTopLeft(mainSplit);
+                 setupBottomLeft(mainSplit);
+                 //setupTopRight(mainSplit);
+                 setupBottomRight(mainSplit);
+             }
 
             File selectedFile = fileChooser.getSelectedFile();
             fullPathGCode = selectedFile.getAbsolutePath();
@@ -473,9 +494,9 @@ public class MainWindow extends JFrame {
                 PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
 
                 Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
-                Path tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
-                Path tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
-                Path tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
+                tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
+                tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
+                tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
 
                 datasGCode = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
                 datasProgram = loadCSVToList(tempInfoProgramPath.toFile());
@@ -499,7 +520,9 @@ public class MainWindow extends JFrame {
 
                 gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
                 setCursor(Cursor.getDefaultCursor());
+                
                 setupTopLeft(mainSplit);
+                setupTopRight(mainSplit);
             }
         };
 
