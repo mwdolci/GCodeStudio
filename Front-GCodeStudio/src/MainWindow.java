@@ -411,9 +411,52 @@ public class MainWindow extends JFrame {
 		topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
 		JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
-		topRightTextArea.setText("texte en haut à droite");
 
 		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+
+        int activeToolInGantt = linearGanttPanel.getActiveToolNumberInGantt();
+        topRightTextArea.setText("texte en haut à droite");
+
+
+        if (datasTools == null || datasTools.isEmpty()) {
+            topLeftTextArea.setText("Aucune donnée disponible.");
+            return;
+        }
+
+        String[] row = datasTools.get(0);
+
+        String[] labels = {"Numéro outil", "", "Durée", "Durée productive", "Durée improductive", "", "Distance", "Distance en matière"};
+        int[] columnIndices = {0, -1, 1, 2, 3, -1, 4, 5};
+
+        int padding = 20;
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < labels.length; i++) {
+            if (columnIndices[i] == -1) {
+                builder.append("\n");  // ligne vide
+            } else if (columnIndices[i] < row.length) {
+                String label = labels[i];
+                String value = row[columnIndices[i]];
+
+                if (label.startsWith("Durée")) {
+                    value = formatDuration(value);
+                }
+                else {
+                    value = value + " mm";
+                }
+
+                int spaces = Math.max(1, padding - label.length());
+                builder.append(label)
+                    .append(" ".repeat(spaces))
+                    .append(": ")
+                    .append(value)
+                    .append("\n");
+            } else {
+                builder.append(labels[i]).append(" : (donnée manquante)\n");
+            }
+        }
+
+        topRightTextArea.setText(builder.toString());
 
 		// SplitPane invisible
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPaneTopRight, linearGanttPanel);

@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.awt.Point;
 import java.awt.BasicStroke;
 
+// Classe pour représenter l'utilisation d'un outil
 class ToolUsage {
     int toolNumber;
     double usageTime;
@@ -22,15 +23,19 @@ class ToolUsage {
     }
 }
 
+// Classe pour dessiner un panneau de Gantt linéaire
 public class LinearGanttPanel extends JPanel {
 
     private java.util.List<ToolUsage> timeline = new ArrayList<>(); // liste des outils et leur temps d'utilisation
     private double totalTime = 0;
-	private int selectedToolIndex = -1; // aucun sélectionné
+	private int selectedToolIndex = -1; // aucun sélectionné par défaut
 	private java.util.List<Rectangle> toolRects = new ArrayList<>(); // rectangles pour chaque outil
 
-    private final Map<Integer, Color> toolColors = new HashMap<>(); // map pour stocker les couleurs des outils
+    private final Map<Integer, Color> toolColors = new HashMap<>(); // Equivalent à un dictionnaire numéro outil - couleur | Final = non modifiable
     
+    private int activeToolNumber = -1; // -1 = aucun outil sélectionné dans le gantt
+
+
     // Constructeur qui charge le CSV et initialise les couleurs
     public LinearGanttPanel(String csvPath) {
         loadCSV(csvPath);
@@ -41,18 +46,25 @@ public class LinearGanttPanel extends JPanel {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				Point p = e.getPoint();
-				for (int i = 0; i < toolRects.size(); i++) {
-					if (toolRects.get(i).contains(p)) {
+                
+				Point p = e.getPoint(); // Récupère la position du clic en XY
+				for (int i = 0; i < toolRects.size(); i++) { // Parcourt les rectangles des outils
+					if (toolRects.get(i).contains(p)) { // Si le clic est dans un rectangle
 						selectedToolIndex = i;
 						ToolUsage selectedTool = timeline.get(i);
 						System.out.println("Clicked Tool T" + selectedTool.toolNumber);
 						repaint(); // redessine pour mise en évidence
-						break;
+                        activeToolNumber = selectedTool.toolNumber; // stocke l'outil actif
+                        break;
 					}
 				}
 			}
 		});
+    }
+
+    // Méthode pour obtenir le numéro de l'outil actif dans le gantt dans le MainWindow
+    public int getActiveToolNumberInGantt() {
+        return activeToolNumber;
     }
 
     private void loadCSV(String path) {
@@ -60,10 +72,10 @@ public class LinearGanttPanel extends JPanel {
             String line = br.readLine(); // Prend pas en compte l'entête
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length < 2) continue;
-                int toolNumber = Integer.parseInt(parts[0].trim());
-                double usageTime = Double.parseDouble(parts[1].trim());
-                timeline.add(new ToolUsage(toolNumber, usageTime));
+                if (parts.length < 2) continue; // Ignore les éventuelles lignes incorèctes
+                int toolNumber = Integer.parseInt(parts[0].trim()); // Récupère le numéro de l'outil
+                double usageTime = Double.parseDouble(parts[1].trim()); // Récupère le temps d'utilisation
+                timeline.add(new ToolUsage(toolNumber, usageTime)); // Ajoute à la liste
                 totalTime += usageTime;
             }
         } catch (IOException e) {
@@ -72,10 +84,10 @@ public class LinearGanttPanel extends JPanel {
     }
 
     private void assignColors() {
-        Random rand = new Random(42); // Couleur aléatoire
+        Random rand = new Random(42); // Couleur aléatoire, 42 = pour la reproductibilité
         for (ToolUsage usage : timeline) {
             if (!toolColors.containsKey(usage.toolNumber)) {
-                Color color = new Color(rand.nextInt(200) + 30, rand.nextInt(200) + 30, rand.nextInt(200) + 30);
+                Color color = new Color(rand.nextInt(200) + 30, rand.nextInt(200) + 30, rand.nextInt(200) + 30); //Couleur aléatoire en évitant couleur sombre
                 toolColors.put(usage.toolNumber, color);
             }
         }
