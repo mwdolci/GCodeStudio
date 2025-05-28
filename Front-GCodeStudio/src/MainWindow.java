@@ -65,21 +65,12 @@ public class MainWindow extends JFrame {
         JMenu menuFile = new JMenu("Fichier");
         JMenuItem itemOpenGCode = new JMenuItem("Ouvrir GCode");
         JMenuItem itemOpenSTL = new JMenuItem("Ouvrir 3D");
-        JMenuItem itemSaveGCode = new JMenuItem("Enregistrer GCode");
-        JMenuItem itemSaveGCodeAs = new JMenuItem("Enregistrer GCode sous");
-
-        itemOpenGCode.addActionListener(e -> openGCodeFile());
-        itemOpenSTL.addActionListener(e -> openSTLFile());
-        // itemSaveGCode.addActionListener(e -> saveGCode());
-        // itemSaveGCodeAs.addActionListener(e -> saveGCodeAs());
-
         menuFile.add(itemOpenGCode);
         menuFile.add(itemOpenSTL);
 
-        //Pour version évoluée
-        //menuFile.add(itemSaveGCode);
-        //menuFile.add(itemSaveGCodeAs);
-
+        itemOpenGCode.addActionListener(e -> openGCodeFile());
+        itemOpenSTL.addActionListener(e -> openSTLFile());
+        
         // *Liste Fonctions*
         JMenu menuFunctions = new JMenu("Fonctions");
         JMenuItem itemCalculate = new JMenuItem("Recalculer");
@@ -87,12 +78,19 @@ public class MainWindow extends JFrame {
 
         itemCalculate.addActionListener(e -> recalculation());
 
-        // *Liste Options*
-        JMenu menuOptions = new JMenu("Options");
+        // *Liste Aide*
+        JMenu menuHelp = new JMenu("Aide");
+        JMenuItem itemOpenHelpPDF = new JMenuItem("Aide");
+        JMenuItem itemOpenWindowAbout = new JMenuItem("A propos");
+        menuHelp.add(itemOpenHelpPDF);
+        menuHelp.add(itemOpenWindowAbout);
+
+        // itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
+        // itemOpenWindowAbout.addActionListener(e -> openAboutWindow());
 
         menuBar.add(menuFile);
         menuBar.add(menuFunctions);
-        menuBar.add(menuOptions);
+        menuBar.add(menuHelp);
 
         setJMenuBar(menuBar);
     }
@@ -418,7 +416,6 @@ public class MainWindow extends JFrame {
         linearGanttPanel.setMinimumSize(new Dimension(60, 100));
         linearGanttPanel.setActiveToolNumber(selectedToolNumber);
         
-
         // Écouteur pour la sélection d'outil dans le diagramme de Gantt
         linearGanttPanel.setToolSelectionListener(toolNumber -> {
             selectedToolNumber = toolNumber;
