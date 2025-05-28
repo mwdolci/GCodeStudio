@@ -131,6 +131,9 @@ public class LinearGanttPanel extends JPanel {
 		g2.setFont(new Font("SansSerif", Font.BOLD, 14));
 		toolRects.clear();
 
+        Rectangle selectedRect = null;
+        ToolUsage selectedUsage = null;
+
         // Dessin des barres de Gantt
 		for (int i = 0; i < timeline.size(); i++) {
 			ToolUsage usage = timeline.get(i);
@@ -138,31 +141,43 @@ public class LinearGanttPanel extends JPanel {
 			Rectangle rect = new Rectangle(x, y, barWidth, barHeight);
 			toolRects.add(rect);
 
-			// Mise en évidence de l'outil sélectionné
 			if (i == selectedToolIndex) {
-				g2.setColor(toolColors.get(usage.toolNumber).darker());
-				g2.fillRect(x, y, barWidth, barHeight);
-				g2.setColor(Color.YELLOW);
-				g2.setStroke(new BasicStroke(3));
-				g2.draw(rect);
-			} else {
-				g2.setColor(toolColors.get(usage.toolNumber));
-				g2.fillRect(x, y, barWidth, barHeight);
-				g2.setColor(Color.BLACK);
-				g2.setStroke(new BasicStroke(1));
-				g2.draw(rect);
-			}
+                selectedRect = rect;
+                selectedUsage = usage;
+            } else {
+                g2.setColor(toolColors.get(usage.toolNumber));
+                g2.fillRect(x, y, barWidth, barHeight);
+                g2.setColor(Color.BLACK);
+                g2.setStroke(new BasicStroke(1));
+                g2.draw(rect);
 
-			// Dessin label outil
-			String label = "T" + usage.toolNumber;
-			FontMetrics fm = g2.getFontMetrics();
-			int textWidth = fm.stringWidth(label);
-			int textX = x + (barWidth - textWidth) / 2;
-			int textY = y + (barHeight - fm.getHeight()) / 2 + fm.getAscent();
-			g2.drawString(label, textX, textY);
+                // Dessin du label outil
+                String label = "T" + usage.toolNumber;
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(label);
+                int textX = x + (barWidth - textWidth) / 2;
+                int textY = y + (barHeight - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(label, textX, textY);
+            }
 
 			x += barWidth;
 		}
+        // Dessin de la barre sélectionnée en dernier
+        if (selectedRect != null && selectedUsage != null) {
+            g2.setColor(toolColors.get(selectedUsage.toolNumber).darker());
+            g2.fillRect(selectedRect.x, selectedRect.y, selectedRect.width, selectedRect.height);
+            g2.setColor(Color.YELLOW);
+            g2.setStroke(new BasicStroke(3));
+            g2.draw(selectedRect);
+
+            // Dessin du label outil sélectionné
+            String label = "T" + selectedUsage.toolNumber;
+            FontMetrics fm = g2.getFontMetrics();
+            int textWidth = fm.stringWidth(label);
+            int textX = selectedRect.x + (selectedRect.width - textWidth) / 2;
+            int textY = selectedRect.y + (selectedRect.height - fm.getHeight()) / 2 + fm.getAscent();
+            g2.drawString(label, textX, textY);
+        }
     }
 
     @Override
