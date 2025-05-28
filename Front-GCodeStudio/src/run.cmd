@@ -1,4 +1,6 @@
 @echo off
+cd /d %~dp0
+
 echo Compilation des fichiers Java...
 
 :: Compile tous les fichiers Java du dossier courant
