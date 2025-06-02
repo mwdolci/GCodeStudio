@@ -85,7 +85,7 @@ public class MainWindow extends JFrame {
         menuHelp.add(itemOpenHelpPDF);
         menuHelp.add(itemOpenWindowAbout);
 
-        // itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
+        itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
         // itemOpenWindowAbout.addActionListener(e -> openAboutWindow());
 
         menuBar.add(menuFile);
@@ -678,6 +678,22 @@ public class MainWindow extends JFrame {
             }
         } else {
             JOptionPane.showMessageDialog(this, "Aucun fichier GCode chargé !");
+        }
+    }
+
+    private void openHelpPDF() {
+        String currentDir = Paths.get("").toAbsolutePath().toString();
+        String helpFilePath = Paths.get(currentDir, "..", "..", "doc", "user_manual_fr.pdf").normalize().toString();
+
+        File helpFile = new File(helpFilePath);
+        if (helpFile.exists()) {
+            try {
+                Desktop.getDesktop().open(helpFile);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Impossible d'ouvrir le fichier d'aide.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Fichier d'aide introuvable.");
         }
     }
 }
