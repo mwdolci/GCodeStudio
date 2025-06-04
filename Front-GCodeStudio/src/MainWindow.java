@@ -27,7 +27,6 @@ public class MainWindow extends JFrame {
     private JTextArea lineInfoArea;
     private JTextArea topLeftTextArea;
     private JTextArea topRightTextArea;
-    private JTextArea bottomRightTextArea;
     private JSplitPane mainSplit;
     private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
     Color backgroundColor = new Color(30, 30, 30);
@@ -74,9 +73,12 @@ public class MainWindow extends JFrame {
         // *Liste Fonctions*
         JMenu menuFunctions = new JMenu("Fonctions");
         JMenuItem itemCalculate = new JMenuItem("Recalculer");
+        JMenuItem itemViewer3D = new JMenuItem("Lancer le viewer 3D");
         menuFunctions.add(itemCalculate);
+        menuFunctions.add(itemViewer3D);
 
         itemCalculate.addActionListener(e -> recalculation());
+        itemViewer3D.addActionListener(e -> startViewer3D());
 
         // *Liste Aide*
         JMenu menuHelp = new JMenu("Aide");
@@ -96,8 +98,31 @@ public class MainWindow extends JFrame {
     }
 
     private void setupWelcomePanel() {
-        welcomePanel = new JPanel();
-        welcomePanel.setBackground(backgroundColor);
+        welcomePanel = new JPanel() {
+            // Redéfinition de paintComponent pour le fond dégradé
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+
+                // Anti-aliasing pour un rendu plus lisse
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int width = getWidth();
+                int height = getHeight();
+
+                // Dégradé vertical du sombre au moins sombre
+                float[] fractions = {0.0f, 1.0f};
+                Color[] colors = {new Color(30, 30, 30), new Color(70, 70, 70)};
+
+                LinearGradientPaint lgp = new LinearGradientPaint(0, 0, 0, height, fractions, colors);
+
+                g2d.setPaint(lgp);
+                g2d.fillRect(0, 0, width, height);
+
+                g2d.dispose();
+            }
+        };
         welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS)); // disposition verticale
 
         JLabel welcomeLabel = new JLabel("Bienvenue dans GCode Studio", SwingConstants.CENTER);
@@ -261,7 +286,7 @@ public class MainWindow extends JFrame {
         topLeft.repaint();
     }
 
-    // Panel en bas à gauche
+    // Panel en bas
     private void setupBottom(JSplitPane mainSplit) {
         // Colonne gauche = éditeur G-code + infos
         JSplitPane leftSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -278,7 +303,7 @@ public class MainWindow extends JFrame {
         gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
         gcodeEditor.setWrapStyleWord(false);
         gcodeEditor.setMargin(new Insets(5, 5, 5, 5));
-        gcodeEditor.setBackground(Color.LIGHT_GRAY);
+        gcodeEditor.setBackground(Color.WHITE);
         gcodeEditor.setEditable(false); // Verrouiller dans version 1.0
         JScrollPane gcodeScrollPane = new JScrollPane(gcodeEditor);
 
@@ -286,9 +311,10 @@ public class MainWindow extends JFrame {
         lineInfoArea = new JTextArea();
         lineInfoArea.setEditable(false);
         lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        lineInfoArea.setBackground(new Color(30, 30, 30));
+        lineInfoArea.setBackground(backgroundColor);
         lineInfoArea.setForeground(Color.WHITE);
-        lineInfoArea.setCaretColor(Color.WHITE);
+        lineInfoArea.setMargin(new Insets(10, 10, 10, 10));
+        lineInfoArea.getCaret().setVisible(false);
         JScrollPane lineInfoScroll = new JScrollPane(lineInfoArea);
 
         leftSplit.setTopComponent(gcodeScrollPane);
@@ -315,7 +341,7 @@ public class MainWindow extends JFrame {
                 gcodeEditor.getHighlighter().removeAllHighlights();
                 int startOffset = gcodeEditor.getLineStartOffset(lineNum);
                 int endOffset = gcodeEditor.getLineEndOffset(lineNum);
-                gcodeEditor.getHighlighter().addHighlight(startOffset, endOffset, new DefaultHighlighter.DefaultHighlightPainter(new Color(255, 255, 150)));
+                gcodeEditor.getHighlighter().addHighlight(startOffset, endOffset, new DefaultHighlighter.DefaultHighlightPainter(new Color(150, 240, 210)));
 
                 if (lineNum >= 0 && lineNum < datasGCode.size()) {
                     String[] row = datasGCode.get(lineNum);
@@ -346,7 +372,7 @@ public class MainWindow extends JFrame {
                         6      // Rayon
                     };
 
-                    int padding = 14;  // position à laquelle commencent les valeurs
+                    int padding = 30;  // position à laquelle commencent les valeurs
 
                     for (int i = 0; i < labels.length; i++) {
                         if (columnIndices[i] == -1) {
@@ -490,25 +516,6 @@ public class MainWindow extends JFrame {
         topRight.repaint();
 	}
 
-    // // Panel en bas à droite
-    // private void setupBottomRight(JSplitPane mainSplit) {
-    //     // Récupération du panneau haut droit à partir du JSplitPane principal
-    //     JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent();
-
-    //     // Config panneau bas droite
-    //     bottomRight.setLayout(new BorderLayout());
-    //     bottomRightTextArea = new JTextArea();
-    //     bottomRightTextArea.setEditable(false);
-    //     bottomRightTextArea.setForeground(Color.WHITE);
-    //     bottomRightTextArea.setBackground(backgroundColor);
-    //     bottomRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-    //     bottomRightTextArea.setMargin(new Insets(10, 10, 10, 10));
-
-    //     JScrollPane scrollPaneBottomRight = new JScrollPane(bottomRightTextArea);
-    //     bottomRight.add(scrollPaneBottomRight, BorderLayout.CENTER);
-    //     bottomRightTextArea.setText("texte en bas à droite");
-    // }
-
     private void openGCodeFile() {
 
         JFileChooser fileChooser = new JFileChooser();
@@ -548,7 +555,7 @@ public class MainWindow extends JFrame {
 
                 GCodeIsOpen = true;
 
-                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, STLIsOpen);
+                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, false);
 
                 Path tempFolder = Paths.get(System.getenv().getOrDefault("TEMP", "/tmp"));
                 tempGCodePath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_gcode.csv");
@@ -622,11 +629,6 @@ public class MainWindow extends JFrame {
             STLIsOpen = true;
 
             setupTopLeft(mainSplit); // On recharge le panel pour affichage du nom du stl
-
-            // Autre thread sinon l'UI se fige et la page se refraichit trop tard
-            new Thread(() -> {
-                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen); // Si un GCode est déjà ouvert on lance aussi le viewer
-            }).start();
         }
     }
 
@@ -706,5 +708,15 @@ public class MainWindow extends JFrame {
                 "Aucune licence spécifique n'est appliquée.";
 
         JOptionPane.showMessageDialog(this, aboutText, "À propos", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void startViewer3D() {
+        if (GCodeIsOpen) {
+                String currentDir = Paths.get("").toAbsolutePath().toString();
+                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
+                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen);
+            } else {
+                JOptionPane.showMessageDialog(this, "Aucun fichier GCode ouvert !");
+        }
     }
 }
