@@ -201,7 +201,7 @@ public class MainWindow extends JFrame {
 
         // Split principal (haut/bas)
         mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, splitBottom);
-        mainSplit.setResizeWeight(0.6); // Partie haute 60%
+        mainSplit.setResizeWeight(0.5); // Partie haute 50%
         mainSplit.setDividerSize(2);
         mainSplit.setBorder(null);
 
@@ -313,7 +313,7 @@ public class MainWindow extends JFrame {
         lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
         lineInfoArea.setBackground(backgroundColor);
         lineInfoArea.setForeground(Color.WHITE);
-        lineInfoArea.setMargin(new Insets(10, 10, 10, 10));
+        lineInfoArea.setMargin(new Insets(10, 10, 2, 10));
         lineInfoArea.getCaret().setVisible(false);
         JScrollPane lineInfoScroll = new JScrollPane(lineInfoArea);
 
@@ -433,7 +433,7 @@ public class MainWindow extends JFrame {
 		bottomLeftTextArea.setForeground(Color.WHITE);
 		bottomLeftTextArea.setBackground(backgroundColor);
 		bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
-		bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
+		bottomLeftTextArea.setMargin(new Insets(10, 10, 2, 10));
         bottomLeftTextArea.setMinimumSize(new Dimension(60, 100));
 		JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
 
