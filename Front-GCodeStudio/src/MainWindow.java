@@ -225,7 +225,7 @@ public class MainWindow extends JFrame {
         bottomLeftTextArea.setEditable(false);
         bottomLeftTextArea.setForeground(Color.WHITE);
         bottomLeftTextArea.setBackground(backgroundColor);
-        bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
         bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
 
         JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
@@ -302,7 +302,7 @@ public class MainWindow extends JFrame {
         gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 14));
         gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
         gcodeEditor.setWrapStyleWord(false);
-        gcodeEditor.setMargin(new Insets(5, 5, 5, 5));
+        gcodeEditor.setMargin(new Insets(5, 10, 5, 5));
         gcodeEditor.setBackground(Color.WHITE);
         gcodeEditor.setEditable(false); // Verrouiller dans version 1.0
         JScrollPane gcodeScrollPane = new JScrollPane(gcodeEditor);
@@ -310,7 +310,7 @@ public class MainWindow extends JFrame {
         // Infos ligne (droite)
         lineInfoArea = new JTextArea();
         lineInfoArea.setEditable(false);
-        lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
         lineInfoArea.setBackground(backgroundColor);
         lineInfoArea.setForeground(Color.WHITE);
         lineInfoArea.setMargin(new Insets(10, 10, 10, 10));
@@ -432,7 +432,7 @@ public class MainWindow extends JFrame {
 		bottomLeftTextArea.setEditable(false);
 		bottomLeftTextArea.setForeground(Color.WHITE);
 		bottomLeftTextArea.setBackground(backgroundColor);
-		bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
 		bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
         bottomLeftTextArea.setMinimumSize(new Dimension(60, 100));
 		JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
