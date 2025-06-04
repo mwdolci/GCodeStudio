@@ -25,8 +25,8 @@ public class MainWindow extends JFrame {
     private JPanel welcomePanel;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
-    private JTextArea topLeftTextArea;
-    private JTextArea topRightTextArea;
+    private JTextArea bottomLeftTextArea;
+    private JTextArea bottomRightTextArea;
     private JSplitPane mainSplit;
     private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
     Color backgroundColor = new Color(30, 30, 30);
@@ -177,31 +177,31 @@ public class MainWindow extends JFrame {
 
     // 3 Panels
     private JSplitPane setupPanels() {
-        // Création des 3 panneaux (topLeft, topRight, bottom)
-        JPanel topLeft = new JPanel();
-        JPanel topRight = new JPanel();
-        JPanel bottom = new JPanel();
+        // Création des 3 panneaux
+        JPanel bottomLeft = new JPanel();
+        JPanel bottomRight = new JPanel();
+        JPanel top = new JPanel();
 
         // Apparence des 3 panneaux
-        JPanel[] panels = { topLeft, topRight, bottom };
+        JPanel[] panels = { bottomLeft, bottomRight, top };
         for (JPanel panel : panels) {
             panel.setBackground(backgroundColor);
             panel.setBorder(BorderFactory.createLineBorder(borderColor, 1));
         }
 
-        // Split haut (gauche/droite)
-        JSplitPane splitTop = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, topLeft, topRight);
-        splitTop.setResizeWeight(0.5);   // moitié-moitié
-        splitTop.setDividerSize(2);    // épaisseur de la ligne
-        splitTop.setBorder(null);
+        // Split bas (gauche/droite)
+        JSplitPane splitBottom = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, bottomLeft, bottomRight);
+        splitBottom.setResizeWeight(0.5);   // moitié-moitié
+        splitBottom.setDividerSize(2);    // épaisseur de la ligne
+        splitBottom.setBorder(null);
 
-        // Bottom
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(bottom, BorderLayout.CENTER);
+        // Top
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(top, BorderLayout.CENTER);
 
         // Split principal (haut/bas)
-        mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitTop, bottomPanel);
-        mainSplit.setResizeWeight(0.4); // Partie haute 40%
+        mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, splitBottom);
+        mainSplit.setResizeWeight(0.6); // Partie haute 60%
         mainSplit.setDividerSize(2);
         mainSplit.setBorder(null);
 
@@ -212,27 +212,27 @@ public class MainWindow extends JFrame {
     }
 
 
-    // Panel en haut à gauche
-    private void setupTopLeft(JSplitPane mainSplit) {
+    // Panel en bas à gauche
+    private void setupBottomLeft(JSplitPane mainSplit) {
         // Récupération du panneau haut gauche à partir du JSplitPane principal
-        JPanel topLeft = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getLeftComponent();
+        JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();
 
-        topLeft.removeAll();
+        bottomLeft.removeAll();
         
-        // Config panneau haut gauche
-        topLeft.setLayout(new BorderLayout());
-        topLeftTextArea = new JTextArea();
-        topLeftTextArea.setEditable(false);
-        topLeftTextArea.setForeground(Color.WHITE);
-        topLeftTextArea.setBackground(backgroundColor);
-        topLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        topLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
+        // Config panneau bas gauche
+        bottomLeft.setLayout(new BorderLayout());
+        bottomLeftTextArea = new JTextArea();
+        bottomLeftTextArea.setEditable(false);
+        bottomLeftTextArea.setForeground(Color.WHITE);
+        bottomLeftTextArea.setBackground(backgroundColor);
+        bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
 
-        JScrollPane scrollPaneTopLeft = new JScrollPane(topLeftTextArea);
-        topLeft.add(scrollPaneTopLeft, BorderLayout.CENTER);
+        JScrollPane scrollPaneTopLeft = new JScrollPane(bottomLeftTextArea);
+        bottomLeft.add(scrollPaneTopLeft, BorderLayout.CENTER);
 
         if (datasProgram == null || datasProgram.isEmpty()) {
-            topLeftTextArea.setText("Aucune donnée disponible.");
+            bottomLeftTextArea.setText("Aucune donnée disponible.");
             return;
         }
 
@@ -279,23 +279,23 @@ public class MainWindow extends JFrame {
             }
         }
 
-        topLeftTextArea.setText(builder.toString());
+        bottomLeftTextArea.setText(builder.toString());
 
         // !! Forcer le rafraichissement de la page sinon fonctionne pas
-        topLeft.revalidate();
-        topLeft.repaint();
+        bottomLeft.revalidate();
+        bottomLeft.repaint();
     }
 
-    // Panel en bas
-    private void setupBottom(JSplitPane mainSplit) {
+    // Panel en haut
+    private void setupTop(JSplitPane mainSplit) {
         // Colonne gauche = éditeur G-code + infos
         JSplitPane leftSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         leftSplit.setDividerSize(2);
 
-        // JPanel du bas
-        JPanel bottomPanel = (JPanel) mainSplit.getBottomComponent();
-        bottomPanel.setLayout(new BorderLayout());
-        bottomPanel.add(leftSplit, BorderLayout.CENTER);
+        // JPanel du haut
+        JPanel topPanel = (JPanel) mainSplit.getTopComponent();
+        topPanel.setLayout(new BorderLayout());
+        topPanel.add(leftSplit, BorderLayout.CENTER);
 
         // Éditeur G-code (gauche)
         gcodeEditor = new JTextArea();
@@ -420,22 +420,22 @@ public class MainWindow extends JFrame {
         });
     }
 
-	// Panel en haut à droite
-	private void setupTopRight(JSplitPane mainSplit) {
-		JPanel topRight = (JPanel) ((JSplitPane) mainSplit.getTopComponent()).getRightComponent();
+	// Panel en bas à droite
+	private void setupBottomRight(JSplitPane mainSplit) {
+		JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent();
 		
-        topRight.removeAll();
+        bottomRight.removeAll();
         
-        topRight.setLayout(new BorderLayout());
+        bottomRight.setLayout(new BorderLayout());
 
-		topRightTextArea = new JTextArea();
-		topRightTextArea.setEditable(false);
-		topRightTextArea.setForeground(Color.WHITE);
-		topRightTextArea.setBackground(backgroundColor);
-		topRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		topRightTextArea.setMargin(new Insets(10, 10, 10, 10));
-        topRightTextArea.setMinimumSize(new Dimension(60, 100));
-		JScrollPane scrollPaneTopRight = new JScrollPane(topRightTextArea);
+		bottomRightTextArea = new JTextArea();
+		bottomRightTextArea.setEditable(false);
+		bottomRightTextArea.setForeground(Color.WHITE);
+		bottomRightTextArea.setBackground(backgroundColor);
+		bottomRightTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+		bottomRightTextArea.setMargin(new Insets(10, 10, 10, 10));
+        bottomRightTextArea.setMinimumSize(new Dimension(60, 100));
+		JScrollPane scrollPaneTopRight = new JScrollPane(bottomRightTextArea);
 
 		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
         linearGanttPanel.setMinimumSize(new Dimension(60, 100));
@@ -444,11 +444,11 @@ public class MainWindow extends JFrame {
         // Écouteur pour la sélection d'outil dans le diagramme de Gantt
         linearGanttPanel.setToolSelectionListener(toolNumber -> {
             selectedToolNumber = toolNumber;
-            setupTopRight(mainSplit);
+            setupBottomRight(mainSplit);
         });
 
         if (datasTools == null || datasTools.isEmpty()) {
-            topLeftTextArea.setText("Aucune donnée disponible.");
+            bottomLeftTextArea.setText("Aucune donnée disponible.");
             return;
         }
 
@@ -496,7 +496,7 @@ public class MainWindow extends JFrame {
             }
         }
 
-        topRightTextArea.setText(builder.toString());
+        bottomRightTextArea.setText(builder.toString());
 
 		// SplitPane invisible
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPaneTopRight, linearGanttPanel);
@@ -509,11 +509,11 @@ public class MainWindow extends JFrame {
 		linearGanttPanel.setBorder(null);
 		linearGanttPanel.setBackground(backgroundColor);
 
-		topRight.add(split, BorderLayout.CENTER);
+		bottomRight.add(split, BorderLayout.CENTER);
 
         // !! Forcer le rafraichissement de la page sinon fonctionne pas
-        topRight.revalidate();
-        topRight.repaint();
+        bottomRight.revalidate();
+        bottomRight.repaint();
 	}
 
     private void openGCodeFile() {
@@ -532,7 +532,7 @@ public class MainWindow extends JFrame {
             if (mainSplit == null) {
                  mainSplit = setupPanels();
                  //setupTopLeft(mainSplit);
-                 setupBottom(mainSplit);
+                 setupTop(mainSplit);
                  //setupTopRight(mainSplit);
                  //setupBottomRight(mainSplit);
              }
@@ -585,8 +585,8 @@ public class MainWindow extends JFrame {
                 gcodeEditor.setCaretPosition(0); // affiche curseur gcode tout en haut
                 setCursor(Cursor.getDefaultCursor());
                 
-                setupTopLeft(mainSplit);
-                setupTopRight(mainSplit);
+                setupBottomLeft(mainSplit);
+                setupBottomRight(mainSplit);
             }
         };
 
@@ -628,7 +628,7 @@ public class MainWindow extends JFrame {
                
             STLIsOpen = true;
 
-            setupTopLeft(mainSplit); // On recharge le panel pour affichage du nom du stl
+            setupBottomLeft(mainSplit); // On recharge le panel pour affichage du nom du stl
         }
     }
 
