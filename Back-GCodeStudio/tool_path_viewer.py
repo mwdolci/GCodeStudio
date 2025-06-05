@@ -71,7 +71,8 @@ class ToolPathViewer:
 
         # Moteurs de rendu piece
         renderer_pc = vtk.vtkRenderer()
-        renderer_pc.SetBackground(colors.GetColor3d(self.viewer_background_color))
+        #renderer_pc.SetBackground(colors.GetColor3d(self.viewer_background_color))
+        renderer_pc.SetBackground(30/255, 30/255, 30/255)
         renderer_pc.AddActor(actor_stl)
         renderer_pc.AddActor(actor_origine)
         renderer_pc.SetLayer(0)
