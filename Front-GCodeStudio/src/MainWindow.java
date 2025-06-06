@@ -53,7 +53,7 @@ public class MainWindow extends JFrame {
         // Configuration de la fenêtre
         setExtendedState(JFrame.MAXIMIZED_BOTH);    // Prend tout l'écran
         setDefaultCloseOperation(EXIT_ON_CLOSE);    // Si je ferme avec la croix, ça stop le process
-        setLocationRelativeTo(null);              // Centrer
+        setLocationRelativeTo(null);                // Centrer
     }
 
     private void setupMenu() {
@@ -73,7 +73,7 @@ public class MainWindow extends JFrame {
         // *Liste Fonctions*
         JMenu menuFunctions = new JMenu("Fonctions");
         JMenuItem itemCalculate = new JMenuItem("Recalculer");
-        JMenuItem itemViewer3D = new JMenuItem("Lancer le viewer 3D");
+        JMenuItem itemViewer3D = new JMenuItem("Simulation 3D");
         menuFunctions.add(itemCalculate);
         menuFunctions.add(itemViewer3D);
 
@@ -126,12 +126,12 @@ public class MainWindow extends JFrame {
         welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS)); // disposition verticale
 
         JLabel welcomeLabel = new JLabel("Bienvenue dans GCode Studio", SwingConstants.CENTER);
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 48));
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
         welcomeLabel.setForeground(Color.WHITE);
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // centrer dans BoxLayout
 
         JLabel startLabel = new JLabel("Ouvrez un programme pour commencer", SwingConstants.CENTER);
-        startLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        startLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         startLabel.setForeground(Color.WHITE);
         startLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -190,8 +190,8 @@ public class MainWindow extends JFrame {
         }
 
         // Split bas (gauche/droite)
-        JSplitPane splitBottom = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, bottomRight, bottomLeft);
-        splitBottom.setResizeWeight(0.5);   // moitié-moitié
+        JSplitPane splitBottom = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, bottomLeft, bottomRight);
+        splitBottom.setResizeWeight(0.83); 
         splitBottom.setDividerSize(2);    // épaisseur de la ligne
         splitBottom.setBorder(null);
 
@@ -211,85 +211,6 @@ public class MainWindow extends JFrame {
         return mainSplit;
     }
 
-
-    // Panel en bas à droite
-    private void setupBottomRight(JSplitPane mainSplit) {
-        // Récupération du panneau bas droite à partir du JSplitPane principal
-        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent();
-
-        bottomRight.removeAll();
-        
-        // Config panneau bas droite
-        bottomRight.setLayout(new BorderLayout());
-        bottomLeftTextArea = new JTextArea();
-        bottomLeftTextArea.setEditable(false);
-        bottomLeftTextArea.setForeground(Color.WHITE);
-        bottomLeftTextArea.setBackground(backgroundColor);
-        bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
-        bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
-
-        JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
-        bottomRight.add(scrollPaneBottomLeft, BorderLayout.CENTER);
-
-        if (datasProgram == null || datasProgram.isEmpty()) {
-            bottomLeftTextArea.setText("Aucune donnée disponible.");
-            return;
-        }
-
-        String[] row = datasProgram.get(0);
-
-        String[] labels = {"Fichier G-Code", "Fichier 3D", "", "", "Nombre de lignes", "Durée du programme", "Durée productive", "Durée imporductive"};
-        int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
-
-        int padding = 20;
-        int numberOfCharacters = 30; // Nombre de caractères maximum pour le nom du fichier
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 0; i < labels.length; i++) {
-            if (columnIndices[i] == -1) {
-                builder.append("\n");  // ligne vide
-            } else if (columnIndices[i] == -2) {
-                // Cas spécial : on récupère le chemin du stl si chargé
-                String label = labels[i];
-                //String value = fullPathSTL;
-                String value = shortenPath(fullPathSTL, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
-
-                if (value == "") {value = "-";}
-                
-                int spaces = Math.max(1, padding - label.length());
-                builder.append(label)
-                    .append(" ".repeat(spaces))
-                    .append(": ")
-                    .append(value)
-                    .append("\n");
-            } else if (columnIndices[i] < row.length) {
-                String label = labels[i];
-                String value = row[columnIndices[i]];
-
-                if (label.contains("Fichier")) {
-                    value = shortenPath(value, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
-                } else if (label.startsWith("Durée")) {
-                    value = formatDuration(value);
-                }
-
-                int spaces = Math.max(1, padding - label.length());
-                builder.append(label)
-                    .append(" ".repeat(spaces))
-                    .append(": ")
-                    .append(value)
-                    .append("\n");
-            } else {
-                builder.append(labels[i]).append(" : (donnée manquante)\n");
-            }
-        }
-
-        bottomLeftTextArea.setText(builder.toString());
-
-        // !! Forcer le rafraichissement de la page sinon fonctionne pas
-        bottomRight.revalidate();
-        bottomRight.repaint();
-    }
-
     // Panel en haut
     private void setupTop(JSplitPane mainSplit) {
         // Colonne gauche = éditeur G-code + infos
@@ -303,7 +224,7 @@ public class MainWindow extends JFrame {
 
         // Éditeur G-code (gauche)
         gcodeEditor = new JTextArea();
-        gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        gcodeEditor.setFont(new Font("Monospaced", Font.PLAIN, 20));
         gcodeEditor.setLineWrap(false); // Pas de retour à la ligne automatique
         gcodeEditor.setWrapStyleWord(false);
         gcodeEditor.setMargin(new Insets(5, 10, 5, 5));
@@ -314,7 +235,7 @@ public class MainWindow extends JFrame {
         // Infos ligne (droite)
         lineInfoArea = new JTextArea();
         lineInfoArea.setEditable(false);
-        lineInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        lineInfoArea.setFont(new Font("Consolas", Font.PLAIN, 18));
         lineInfoArea.setBackground(backgroundColor);
         lineInfoArea.setForeground(Color.WHITE);
         lineInfoArea.setMargin(new Insets(10, 10, 2, 10));
@@ -376,7 +297,7 @@ public class MainWindow extends JFrame {
                         6      // Rayon
                     };
 
-                    int padding = 30;  // position à laquelle commencent les valeurs
+                    int padding = 20;  // position à laquelle commencent les valeurs
 
                     for (int i = 0; i < labels.length; i++) {
                         if (columnIndices[i] == -1) {
@@ -424,7 +345,7 @@ public class MainWindow extends JFrame {
         });
     }
 
-	// Panel en bas à gauche
+    // Panel en bas à gauche
 	private void setupBottomLeft(JSplitPane mainSplit) {
         JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();
 		
@@ -436,7 +357,7 @@ public class MainWindow extends JFrame {
 		bottomLeftTextArea.setEditable(false);
 		bottomLeftTextArea.setForeground(Color.WHITE);
 		bottomLeftTextArea.setBackground(backgroundColor);
-		bottomLeftTextArea.setFont(new Font("Monospaced", Font.PLAIN, 18));
+		bottomLeftTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
 		bottomLeftTextArea.setMargin(new Insets(10, 10, 2, 10));
         bottomLeftTextArea.setMinimumSize(new Dimension(60, 100));
 		JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
@@ -519,6 +440,84 @@ public class MainWindow extends JFrame {
         bottomLeft.revalidate();
         bottomLeft.repaint();
 	}
+
+    // Panel en bas à droite
+    private void setupBottomRight(JSplitPane mainSplit) {
+        // Récupération du panneau bas droite à partir du JSplitPane principal
+        JPanel bottomRight = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getRightComponent();
+
+        bottomRight.removeAll();
+        
+        // Config panneau bas droite
+        bottomRight.setLayout(new BorderLayout());
+        bottomLeftTextArea = new JTextArea();
+        bottomLeftTextArea.setEditable(false);
+        bottomLeftTextArea.setForeground(Color.WHITE);
+        bottomLeftTextArea.setBackground(backgroundColor);
+        bottomLeftTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
+        bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
+
+        JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
+        bottomRight.add(scrollPaneBottomLeft, BorderLayout.CENTER);
+
+        if (datasProgram == null || datasProgram.isEmpty()) {
+            bottomLeftTextArea.setText("Aucune donnée disponible.");
+            return;
+        }
+
+        String[] row = datasProgram.get(0);
+
+        String[] labels = {"Fichier G-Code", "Fichier 3D", "", "", "Nombre de lignes", "Durée du programme", "Durée productive", "Durée imporductive"};
+        int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
+
+        int padding = 20;
+        int numberOfCharacters = 30; // Nombre de caractères maximum pour le nom du fichier
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < labels.length; i++) {
+            if (columnIndices[i] == -1) {
+                builder.append("\n");  // ligne vide
+            } else if (columnIndices[i] == -2) {
+                // Cas spécial : on récupère le chemin du stl si chargé
+                String label = labels[i];
+                //String value = fullPathSTL;
+                String value = shortenPath(fullPathSTL, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
+
+                if (value == "") {value = "-";}
+                
+                int spaces = Math.max(1, padding - label.length());
+                builder.append(label)
+                    .append(" ".repeat(spaces))
+                    .append(": ")
+                    .append(value)
+                    .append("\n");
+            } else if (columnIndices[i] < row.length) {
+                String label = labels[i];
+                String value = row[columnIndices[i]];
+
+                if (label.contains("Fichier")) {
+                    value = shortenPath(value, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
+                } else if (label.startsWith("Durée")) {
+                    value = formatDuration(value);
+                }
+
+                int spaces = Math.max(1, padding - label.length());
+                builder.append(label)
+                    .append(" ".repeat(spaces))
+                    .append(": ")
+                    .append(value)
+                    .append("\n");
+            } else {
+                builder.append(labels[i]).append(" : (donnée manquante)\n");
+            }
+        }
+
+        bottomLeftTextArea.setText(builder.toString());
+
+        // !! Forcer le rafraichissement de la page sinon fonctionne pas
+        bottomRight.revalidate();
+        bottomRight.repaint();
+    }
 
     private void openGCodeFile() {
 
@@ -664,9 +663,9 @@ public class MainWindow extends JFrame {
         int seconds = totalSeconds % 60;
 
         StringBuilder sb = new StringBuilder();
-        if (hours > 0) sb.append(hours).append("h ");
-        if (minutes > 0 || hours > 0) sb.append(minutes).append("min. ");
-        sb.append(seconds).append("sec.");
+        if (hours > 0) sb.append(hours).append(" h ");
+        if (minutes > 0 || hours > 0) sb.append(minutes).append(" min. ");
+        sb.append(seconds).append(" sec.");
 
         return sb.toString().trim();
     }
