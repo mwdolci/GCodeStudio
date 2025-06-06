@@ -26,11 +26,11 @@ public class MainWindow extends JFrame {
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea bottomLeftTextArea;
-    private JTextArea bottomRightTextArea;
     private JSplitPane mainSplit;
     private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
-    Color backgroundColor = new Color(30, 30, 30);
-    Color borderColor = Color.WHITE;
+    private Color backgroundColor = new Color(244, 244, 244);
+    private Color textColor = Color.BLACK;
+    private Color borderColor = Color.WHITE;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -237,7 +237,7 @@ public class MainWindow extends JFrame {
         lineInfoArea.setEditable(false);
         lineInfoArea.setFont(new Font("Consolas", Font.PLAIN, 18));
         lineInfoArea.setBackground(backgroundColor);
-        lineInfoArea.setForeground(Color.WHITE);
+        lineInfoArea.setForeground(textColor);
         lineInfoArea.setMargin(new Insets(10, 10, 2, 10));
         lineInfoArea.getCaret().setVisible(false);
         JScrollPane lineInfoScroll = new JScrollPane(lineInfoArea);
@@ -355,7 +355,7 @@ public class MainWindow extends JFrame {
 
 		bottomLeftTextArea = new JTextArea();
 		bottomLeftTextArea.setEditable(false);
-		bottomLeftTextArea.setForeground(Color.WHITE);
+		bottomLeftTextArea.setForeground(textColor);
 		bottomLeftTextArea.setBackground(backgroundColor);
 		bottomLeftTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
 		bottomLeftTextArea.setMargin(new Insets(10, 10, 2, 10));
@@ -452,7 +452,7 @@ public class MainWindow extends JFrame {
         bottomRight.setLayout(new BorderLayout());
         bottomLeftTextArea = new JTextArea();
         bottomLeftTextArea.setEditable(false);
-        bottomLeftTextArea.setForeground(Color.WHITE);
+        bottomLeftTextArea.setForeground(textColor);
         bottomLeftTextArea.setBackground(backgroundColor);
         bottomLeftTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
         bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
