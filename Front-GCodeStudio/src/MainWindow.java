@@ -242,6 +242,7 @@ public class MainWindow extends JFrame {
         int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
 
         int padding = 20;
+        int numberOfCharacters = 30; // Nombre de caractères maximum pour le nom du fichier
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < labels.length; i++) {
@@ -250,7 +251,8 @@ public class MainWindow extends JFrame {
             } else if (columnIndices[i] == -2) {
                 // Cas spécial : on récupère le chemin du stl si chargé
                 String label = labels[i];
-                String value = fullPathSTL;
+                //String value = fullPathSTL;
+                String value = shortenPath(fullPathSTL, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
 
                 if (value == "") {value = "-";}
                 
@@ -264,7 +266,9 @@ public class MainWindow extends JFrame {
                 String label = labels[i];
                 String value = row[columnIndices[i]];
 
-                if (label.startsWith("Durée")) {
+                if (label.contains("Fichier")) {
+                    value = shortenPath(value, numberOfCharacters); // Limite nombre de caractères affichés à l'écran
+                } else if (label.startsWith("Durée")) {
                     value = formatDuration(value);
                 }
 
@@ -718,5 +722,28 @@ public class MainWindow extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Aucun fichier GCode ouvert !");
         }
+    }
+
+    private String shortenPath(String path, int maxLength) {
+        if (path == null || path.length() <= maxLength) {
+            return path;
+        }
+
+        // Normaliser les séparateurs : remplace tous les \ par /
+        path = path.replace("\\", "/");
+
+        String fileName = new File(path).getName();
+
+        if (fileName.length() + 5 >= maxLength) {
+            return "..." + fileName.substring(fileName.length() - (maxLength - 3));
+        }
+
+        int keepLength = maxLength - fileName.length() - 5; // 5 pour /.../
+        String start = path.substring(0, Math.min(keepLength, path.length()));
+
+        // Supprimer les éventuels / en trop à la fin
+        start = start.replaceAll("/+$", "");
+
+        return start + "/.../" + fileName;
     }
 }
