@@ -25,11 +25,12 @@ class ToolUsage {
 
 // Classe pour dessiner un panneau de Gantt linéaire
 public class LinearGanttPanel extends JPanel {
-
     private java.util.List<ToolUsage> timeline = new ArrayList<>(); // liste des outils et leur temps d'utilisation
     private double totalTime = 0;
 	private int selectedToolIndex = -1; // aucun sélectionné par défaut
 	private java.util.List<Rectangle> toolRects = new ArrayList<>(); // rectangles pour chaque outil
+
+    private double currentTime = 0; 
 
     private final Map<Integer, Color> toolColors = new HashMap<>(); // Equivalent à un dictionnaire numéro outil - couleur | Final = non modifiable
 
@@ -64,6 +65,16 @@ public class LinearGanttPanel extends JPanel {
 		});
     }
 
+    public void setCurrentTime(double seconds) {
+        System.out.println("currentTime = " + currentTime + ", totalTime = " + totalTime + ", seconds = " + seconds);
+        this.currentTime = Math.max(0, Math.min(seconds, totalTime)); // entre 0 et totalTime
+        repaint();
+    }
+
+    public double getTotalTime() {
+        return totalTime;
+    }
+
     // Méthode pour changer le numéro de l'outil actif dans le gantt
     public interface ToolSelectionListener {
         void onToolSelected(int toolNumber);
@@ -87,7 +98,13 @@ public class LinearGanttPanel extends JPanel {
         repaint();
     }
 
-    private void loadCSV(String path) {
+    public void loadCSV(String path) {
+        System.out.println("Charge depuis LinearGanttPanel");
+        timeline.clear(); // Vide la liste avant de charger
+        totalTime = 0; // Réinitialise le temps total
+        toolColors.clear(); // Vide les couleurs des outils
+        selectedToolIndex = -1; // Réinitialise l'outil sélectionné
+
         try (BufferedReader br = Files.newBufferedReader(Paths.get(path))) {
             String line = br.readLine(); // Prend pas en compte l'entête
             while ((line = br.readLine()) != null) {
@@ -101,6 +118,8 @@ public class LinearGanttPanel extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        assignColors();
+        repaint();
     }
 
     private void assignColors() {
@@ -161,6 +180,7 @@ public class LinearGanttPanel extends JPanel {
 
 			x += barWidth;
 		}
+
         // Dessin de la barre sélectionnée en dernier
         if (selectedRect != null && selectedUsage != null) {
             g2.setColor(toolColors.get(selectedUsage.toolNumber).darker());
@@ -177,6 +197,13 @@ public class LinearGanttPanel extends JPanel {
             int textY = selectedRect.y + (selectedRect.height - fm.getHeight()) / 2 + fm.getAscent();
             g2.drawString(label, textX, textY);
         }
+
+        // Dessine la ligne verticale rouge représentant le temps courant
+        int timeX = 10 + (int)((currentTime / totalTime) * (panelWidth - 20));
+        g2.setColor(Color.RED);
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawLine(timeX, y, timeX, y + barHeight);
+        //g2.drawLine(timeX, 0, timeX, panelHeight);
     }
 
     @Override

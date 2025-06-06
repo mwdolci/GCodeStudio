@@ -31,6 +31,8 @@ public class MainWindow extends JFrame {
     private Color backgroundColor = new Color(244, 244, 244);
     private Color textColor = Color.BLACK;
     private Color borderColor = Color.WHITE;
+    private LinearGanttPanel linearGanttPanel;
+    private JSlider timeSlider;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -306,6 +308,14 @@ public class MainWindow extends JFrame {
                             String label = labels[i];
                             String value = row[columnIndices[i]];
 
+                            if (linearGanttPanel != null && timeSlider != null)  {
+                                double currentTime = Double.parseDouble(row[11]);
+                                linearGanttPanel.setCurrentTime(currentTime); // Déplace la ligne dans le Gantt
+                                double totalTime = linearGanttPanel.getTotalTime();
+                                int sliderValue = (int) ((currentTime / totalTime) * 1000);
+                                timeSlider.setValue(sliderValue); // Déplace le curseur dans le Gantt
+                            }
+
                             if ("Temps".equals(label) || "Durée".equals(label)) {
                                 value = formatDuration(value);
                             } else if ("Avance".equals(label)) {
@@ -362,9 +372,29 @@ public class MainWindow extends JFrame {
         bottomLeftTextArea.setMinimumSize(new Dimension(60, 100));
 		JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
 
-		LinearGanttPanel linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+        // Création du LinearGanttPanel
+        if (linearGanttPanel == null) {
+            linearGanttPanel = new LinearGanttPanel(tempInfoToolsPath.toString());
+        } else {
+            linearGanttPanel.loadCSV(tempInfoToolsPath.toString());
+        }
         linearGanttPanel.setMinimumSize(new Dimension(60, 100));
         linearGanttPanel.setActiveToolNumber(selectedToolNumber);
+
+        // Création du slider
+        if (timeSlider == null) {
+            timeSlider = new JSlider(0, 1000, 0);
+            timeSlider.setPreferredSize(new Dimension(200, 40));
+            timeSlider.setBackground(backgroundColor);
+            timeSlider.setEnabled(false); // Désactive le slider pour l'utilisateur
+        }
+
+        // Slider qui met à jour la ligne de temps dans le Gantt
+        timeSlider.addChangeListener(e -> {
+            double percent = timeSlider.getValue() / 1000.0;
+            double currentTime = percent * linearGanttPanel.getTotalTime();
+            linearGanttPanel.setCurrentTime(currentTime);
+        });
         
         // Écouteur pour la sélection d'outil dans le diagramme de Gantt
         linearGanttPanel.setToolSelectionListener(toolNumber -> {
@@ -423,11 +453,22 @@ public class MainWindow extends JFrame {
 
         bottomLeftTextArea.setText(builder.toString());
 
-		// SplitPane invisible
-		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPaneBottomLeft, linearGanttPanel);
-		split.setResizeWeight(0.8); // 80% texte, 20% diagramme
-		split.setDividerSize(0);   // Enlève la barre de séparation
-		split.setEnabled(false);   // Désactive la possibilité de la déplacer
+        // Panel contenant le gantt
+        JPanel sliderPanel = new JPanel(new BorderLayout());
+        sliderPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 5, 5));
+        sliderPanel.setBackground(backgroundColor);
+        sliderPanel.add(timeSlider, BorderLayout.CENTER);
+
+        // Panel contenant le gantt et le slider
+        JPanel ganttAndSliderPanel = new JPanel(new BorderLayout());
+        ganttAndSliderPanel.add(sliderPanel, BorderLayout.NORTH);
+        ganttAndSliderPanel.add(linearGanttPanel, BorderLayout.CENTER);
+        
+        // SplitPane invisible, avec le texte en haut et gantt+slider en bas
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPaneBottomLeft, ganttAndSliderPanel);
+        split.setResizeWeight(0.8);
+        split.setDividerSize(0);
+        split.setEnabled(false);
 
 		// Supprimer les bordures
 		scrollPaneBottomLeft.setBorder(null);
@@ -547,6 +588,7 @@ public class MainWindow extends JFrame {
     }
 
     private void processLoadGCodeFile(String filePath){
+        System.out.println("Charge depuis MainWindow");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
 
         // Travail en arrière-plan
