@@ -39,6 +39,12 @@ class ToolPathViewer:
 
         # Lire le fichier STL
         reader = vtk.vtkSTLReader()
+
+        # Désactiver les popups d'erreur VTK (redirige vers null)
+        vtk_output = vtk.vtkFileOutputWindow()
+        vtk_output.SetFileName("NUL") 
+        vtk.vtkOutputWindow.SetInstance(vtk_output)
+
         reader.SetFileName(path_file)
 
         # Acteur pour stl
@@ -72,7 +78,7 @@ class ToolPathViewer:
         # Moteurs de rendu piece
         renderer_pc = vtk.vtkRenderer()
         #renderer_pc.SetBackground(colors.GetColor3d(self.viewer_background_color))
-        renderer_pc.SetBackground(30/255, 30/255, 30/255)
+        renderer_pc.SetBackground(34/255, 34/255, 34/255)
         renderer_pc.AddActor(actor_stl)
         renderer_pc.AddActor(actor_origine)
         renderer_pc.SetLayer(0)
@@ -125,7 +131,7 @@ class ToolPathViewer:
         render_window.AddRenderer(renderer_pc)
         render_window.AddRenderer(renderer_toolpath)
         render_window.SetNumberOfLayers(2)
-        render_window.SetWindowName("Part Program Analyzer: Viewer 3D")
+        render_window.SetWindowName("GCodeStudio: Simulation 3D")
         render_window.SetSize(800, 800)
         screen_size = render_window.GetScreenSize()
         window_size = render_window.GetSize()
