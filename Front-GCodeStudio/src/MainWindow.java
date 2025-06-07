@@ -377,7 +377,6 @@ public class MainWindow extends JFrame {
         JPanel bottomLeft = (JPanel) ((JSplitPane) mainSplit.getBottomComponent()).getLeftComponent();
 		
         bottomLeft.removeAll();
-        
         bottomLeft.setLayout(new BorderLayout());
 
 		bottomLeftTextArea = new JTextArea();
@@ -495,7 +494,6 @@ public class MainWindow extends JFrame {
 
 		bottomLeft.add(split, BorderLayout.CENTER);
 
-        // !! Forcer le rafraichissement de la page sinon fonctionne pas
         bottomLeft.revalidate();
         bottomLeft.repaint();
 	}
@@ -573,7 +571,6 @@ public class MainWindow extends JFrame {
 
         bottomRightTextArea.setText(builder.toString());
 
-        // !! Forcer le rafraichissement de la page sinon fonctionne pas
         bottomRight.revalidate();
         bottomRight.repaint();
     }
@@ -592,9 +589,9 @@ public class MainWindow extends JFrame {
 
             // Première construction graphique
             if (mainSplit == null) {
-                 mainSplit = setupPanels();
-                 setupTop(mainSplit);
-             }
+                mainSplit = setupPanels();
+                setupTop(mainSplit);
+            }
 
             File selectedFile = fileChooser.getSelectedFile();
             fullPathGCode = selectedFile.getAbsolutePath();
@@ -730,7 +727,6 @@ public class MainWindow extends JFrame {
     }
 
     private void recalculation() {
-        STLIsOpen = false; // Pour ne pas ouvrir le viwer sur recalcul
 
         if (fullPathGCode != null && !fullPathGCode.isEmpty()) {
             File f = new File(fullPathGCode);
@@ -774,11 +770,13 @@ public class MainWindow extends JFrame {
 
     private void startViewer3D() {
         if (GCodeIsOpen) {
+            new Thread(() -> { // Lance le script Python dans un thread séparé --> évite de bloquer l'UI
                 String currentDir = Paths.get("").toAbsolutePath().toString();
                 String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
                 PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen);
-            } else {
-                JOptionPane.showMessageDialog(this, "Aucun fichier GCode ouvert !");
+            }).start();
+        } else {
+            JOptionPane.showMessageDialog(this, "Aucun fichier GCode ouvert !");
         }
     }
 
