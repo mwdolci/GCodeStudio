@@ -25,6 +25,7 @@ public class MainWindow extends JFrame {
     private JPanel welcomePanel;
     private JPanel ganttAndSliderPanel;
     private JPanel sliderPanel;
+    private JMenu menuParameters;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea bottomLeftTextArea;
@@ -90,7 +91,7 @@ public class MainWindow extends JFrame {
         itemViewer3D.addActionListener(e -> startViewer3D());
 
         // *Liste Paramètres*
-        JMenu menuParameters = new JMenu("Paramètres");
+        menuParameters = new JMenu("Paramètres");
         JMenuItem itemTheme = new JMenuItem("Thème");
         menuParameters.add(itemTheme);
         itemTheme.addActionListener(e -> showThemeSelectionDialog());
@@ -189,6 +190,8 @@ public class MainWindow extends JFrame {
         welcomePanel.add(Box.createRigidArea(new Dimension(0, 50)));
         welcomePanel.add(openFileButton);
         welcomePanel.add(Box.createVerticalGlue());
+
+        if (menuParameters != null) {menuParameters.setEnabled(false); } // Désactiver le menu paramètres sur la page d'accueil
     }
 
     // 3 Panels
@@ -644,6 +647,8 @@ public class MainWindow extends JFrame {
                 
                 setupBottomRight(mainSplit);
                 setupBottomLeft(mainSplit);
+
+                if (menuParameters != null) {menuParameters.setEnabled(true); } // Réactiver le menu paramètres après chargement du GCode
             }
         };
 
@@ -801,7 +806,7 @@ public class MainWindow extends JFrame {
     }
 
     private void showThemeSelectionDialog() {
-        JDialog dialog = new JDialog(this, "Select Theme", true);
+        JDialog dialog = new JDialog(this, "Sélection du thème", true);
         dialog.setLayout(new BorderLayout());
         dialog.setSize(300, 150);
         dialog.setLocationRelativeTo(this);
@@ -832,8 +837,8 @@ public class MainWindow extends JFrame {
         centerPanel.add(harlequinButton);
 
         JPanel buttonPanel = new JPanel();
-        JButton applyButton = new JButton("Apply");
-        JButton cancelButton = new JButton("Cancel");
+        JButton applyButton = new JButton("Appliquer");
+        JButton cancelButton = new JButton("Annuler");
 
         applyButton.addActionListener(e -> {
             if (lightButton.isSelected()) {
