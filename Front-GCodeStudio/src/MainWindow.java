@@ -23,16 +23,23 @@ public class MainWindow extends JFrame {
     private Path tempInfoProgramPath;
     private Path tempInfoToolsPath;
     private JPanel welcomePanel;
+    private JPanel ganttAndSliderPanel;
+    private JPanel sliderPanel;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea bottomLeftTextArea;
+    private JTextArea bottomRightTextArea;
     private JSplitPane mainSplit;
+    private JSlider timeSlider;
     private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
+    private LinearGanttPanel linearGanttPanel;
     private Color backgroundColor = new Color(244, 244, 244);
+    private Color backgroundColorEditor;
     private Color textColor = Color.BLACK;
     private Color borderColor = Color.WHITE;
-    private LinearGanttPanel linearGanttPanel;
-    private JSlider timeSlider;
+    private Color backgroundColorTopRight;
+    private Color backgroundColorBottomLeft; 
+    private Color backgroundColorBottomRight;
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -82,6 +89,12 @@ public class MainWindow extends JFrame {
         itemCalculate.addActionListener(e -> recalculation());
         itemViewer3D.addActionListener(e -> startViewer3D());
 
+        // *Liste Paramètres*
+        JMenu menuParameters = new JMenu("Paramètres");
+        JMenuItem itemTheme = new JMenuItem("Thème");
+        menuParameters.add(itemTheme);
+        itemTheme.addActionListener(e -> showThemeSelectionDialog());
+
         // *Liste Aide*
         JMenu menuHelp = new JMenu("Aide");
         JMenuItem itemOpenHelpPDF = new JMenuItem("Aide");
@@ -94,6 +107,7 @@ public class MainWindow extends JFrame {
 
         menuBar.add(menuFile);
         menuBar.add(menuFunctions);
+        menuBar.add(menuParameters);
         menuBar.add(menuHelp);
 
         setJMenuBar(menuBar);
@@ -386,6 +400,7 @@ public class MainWindow extends JFrame {
             timeSlider = new JSlider(0, 1000, 0);
             timeSlider.setPreferredSize(new Dimension(200, 40));
             timeSlider.setBackground(backgroundColor);
+            timeSlider.setOpaque(false);
             timeSlider.setEnabled(false); // Désactive le slider pour l'utilisateur
         }
 
@@ -454,13 +469,13 @@ public class MainWindow extends JFrame {
         bottomLeftTextArea.setText(builder.toString());
 
         // Panel contenant le gantt
-        JPanel sliderPanel = new JPanel(new BorderLayout());
+        sliderPanel = new JPanel(new BorderLayout());
         sliderPanel.setBorder(BorderFactory.createEmptyBorder(0, 2, 5, 5));
         sliderPanel.setBackground(backgroundColor);
         sliderPanel.add(timeSlider, BorderLayout.CENTER);
 
         // Panel contenant le gantt et le slider
-        JPanel ganttAndSliderPanel = new JPanel(new BorderLayout());
+        ganttAndSliderPanel = new JPanel(new BorderLayout());
         ganttAndSliderPanel.add(sliderPanel, BorderLayout.NORTH);
         ganttAndSliderPanel.add(linearGanttPanel, BorderLayout.CENTER);
         
@@ -491,18 +506,18 @@ public class MainWindow extends JFrame {
         
         // Config panneau bas droite
         bottomRight.setLayout(new BorderLayout());
-        bottomLeftTextArea = new JTextArea();
-        bottomLeftTextArea.setEditable(false);
-        bottomLeftTextArea.setForeground(textColor);
-        bottomLeftTextArea.setBackground(backgroundColor);
-        bottomLeftTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
-        bottomLeftTextArea.setMargin(new Insets(10, 10, 10, 10));
+        bottomRightTextArea = new JTextArea();
+        bottomRightTextArea.setEditable(false);
+        bottomRightTextArea.setForeground(textColor);
+        bottomRightTextArea.setBackground(backgroundColor);
+        bottomRightTextArea.setFont(new Font("Consolas", Font.PLAIN, 18));
+        bottomRightTextArea.setMargin(new Insets(10, 10, 10, 10));
 
-        JScrollPane scrollPaneBottomLeft = new JScrollPane(bottomLeftTextArea);
-        bottomRight.add(scrollPaneBottomLeft, BorderLayout.CENTER);
+        JScrollPane scrollPaneBottomRight = new JScrollPane(bottomRightTextArea);
+        bottomRight.add(scrollPaneBottomRight, BorderLayout.CENTER);
 
         if (datasProgram == null || datasProgram.isEmpty()) {
-            bottomLeftTextArea.setText("Aucune donnée disponible.");
+            bottomRightTextArea.setText("Aucune donnée disponible.");
             return;
         }
 
@@ -553,7 +568,7 @@ public class MainWindow extends JFrame {
             }
         }
 
-        bottomLeftTextArea.setText(builder.toString());
+        bottomRightTextArea.setText(builder.toString());
 
         // !! Forcer le rafraichissement de la page sinon fonctionne pas
         bottomRight.revalidate();
@@ -572,13 +587,10 @@ public class MainWindow extends JFrame {
 
         if (result == JFileChooser.APPROVE_OPTION) {
 
-            // Première construction graphique de la fenêtre principale
+            // Première construction graphique
             if (mainSplit == null) {
                  mainSplit = setupPanels();
-                 //setupTopLeft(mainSplit);
                  setupTop(mainSplit);
-                 //setupTopRight(mainSplit);
-                 //setupBottomRight(mainSplit);
              }
 
             File selectedFile = fileChooser.getSelectedFile();
@@ -786,5 +798,107 @@ public class MainWindow extends JFrame {
         start = start.replaceAll("/+$", "");
 
         return start + "/.../" + fileName;
+    }
+
+    private void showThemeSelectionDialog() {
+        JDialog dialog = new JDialog(this, "Select Theme", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+
+        JRadioButton lightButton = new JRadioButton("Light");
+        JRadioButton darkButton = new JRadioButton("Dark");
+        JRadioButton harlequinButton = new JRadioButton("Harlequin");
+
+        // Sélection actuelle
+        if (backgroundColor.equals(new Color(34, 34, 34))) {
+            darkButton.setSelected(true);
+        } else if (backgroundColor.equals(new Color(0, 120, 255))) {
+            harlequinButton.setSelected(true);
+        } else {
+            lightButton.setSelected(true);
+        }
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(lightButton);
+        group.add(darkButton);
+        group.add(harlequinButton);
+
+        centerPanel.add(lightButton);
+        centerPanel.add(darkButton);
+        centerPanel.add(harlequinButton);
+
+        JPanel buttonPanel = new JPanel();
+        JButton applyButton = new JButton("Apply");
+        JButton cancelButton = new JButton("Cancel");
+
+        applyButton.addActionListener(e -> {
+            if (lightButton.isSelected()) {
+                applyLightTheme();
+            } else if (darkButton.isSelected()) {
+                applyDarkTheme();
+            } else if (harlequinButton.isSelected()) {
+                applyHarlequinTheme();
+            }
+            dialog.dispose();
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(applyButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(centerPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void applyLightTheme() {
+        backgroundColor = new Color(244, 244, 244);
+        backgroundColorTopRight = backgroundColor;
+        backgroundColorBottomLeft = backgroundColor;
+        backgroundColorBottomRight = backgroundColor;
+        backgroundColorEditor = Color.WHITE;
+        textColor = Color.BLACK;
+        applyThemeColors();
+    }
+
+    private void applyDarkTheme() {
+        backgroundColor = new Color(34, 34, 34);
+        backgroundColorTopRight = backgroundColor;
+        backgroundColorBottomLeft = backgroundColor;
+        backgroundColorBottomRight = backgroundColor;
+        backgroundColorEditor = new Color(200, 200, 200);
+        textColor = Color.WHITE;
+        applyThemeColors();
+    }
+
+    private void applyHarlequinTheme() {
+        backgroundColor = new Color(0, 120, 255);
+        backgroundColorTopRight = new Color(140, 180, 255);
+        backgroundColorBottomLeft = new Color(255, 170, 200);
+        backgroundColorBottomRight = new Color(150, 230, 150);
+        backgroundColorEditor = new Color(255, 250, 210);
+        textColor = Color.BLACK;
+        applyThemeColors();
+    }
+
+    private void applyThemeColors() {
+        getContentPane().setBackground(backgroundColor);
+        lineInfoArea.setBackground(backgroundColorTopRight);
+        lineInfoArea.setForeground(textColor);
+        bottomLeftTextArea.setBackground(backgroundColorBottomLeft);
+        bottomLeftTextArea.setForeground(textColor);
+        bottomRightTextArea.setBackground(backgroundColorBottomRight);
+        bottomRightTextArea.setForeground(textColor);
+        linearGanttPanel.setBackground(backgroundColorBottomLeft);
+        sliderPanel.setBackground(backgroundColorBottomLeft);
+        ganttAndSliderPanel.setBackground(backgroundColorBottomLeft);
+        gcodeEditor.setBackground(backgroundColorEditor);
+        revalidate();
+        repaint();
     }
 }
