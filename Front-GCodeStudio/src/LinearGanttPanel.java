@@ -203,7 +203,6 @@ public class LinearGanttPanel extends JPanel {
         g2.setColor(Color.RED);
         g2.setStroke(new BasicStroke(2f));
         g2.drawLine(timeX, y, timeX, y + barHeight);
-        //g2.drawLine(timeX, 0, timeX, panelHeight);
     }
 
     @Override
@@ -212,9 +211,22 @@ public class LinearGanttPanel extends JPanel {
         for (int i = 0; i < toolRects.size(); i++) {
             if (toolRects.get(i).contains(p)) {
                 ToolUsage usage = timeline.get(i);
-                return "Outil T" + usage.toolNumber + " : " + usage.usageTime + "s";
+
+                double totalTime = getTotalUsageTime();
+
+                if (totalTime > 0) {
+                    double percentage = (usage.usageTime / totalTime) * 100;
+                    return String.format("T%d : %.1f%%", usage.toolNumber, percentage);
+                } else {
+                    return "T" + usage.toolNumber + " : 0%";
+                }
             }
         }
         return null; // pas de tooltip
+    }
+
+    // Méthode pour obtenir le temps total d'utilisation de tous les outils
+    private double getTotalUsageTime() {
+        return timeline.stream().mapToDouble(usage -> usage.usageTime).sum();
     }
 }

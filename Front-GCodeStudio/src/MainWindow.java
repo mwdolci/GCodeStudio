@@ -98,12 +98,15 @@ public class MainWindow extends JFrame {
 
         // *Liste Aide*
         JMenu menuHelp = new JMenu("Aide");
-        JMenuItem itemOpenHelpPDF = new JMenuItem("Aide");
+        JMenuItem itemOpenHelpPDF = new JMenuItem("Manuel utilisateur");
+        JMenuItem itemOpenTutorialMovie = new JMenuItem("Tutoriel vidéo");
         JMenuItem itemOpenWindowAbout = new JMenuItem("A propos");
         menuHelp.add(itemOpenHelpPDF);
+        menuHelp.add(itemOpenTutorialMovie);
         menuHelp.add(itemOpenWindowAbout);
 
         itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
+        itemOpenTutorialMovie.addActionListener(e -> openTutorialMovie());
         itemOpenWindowAbout.addActionListener(e -> openAboutWindow());
 
         menuBar.add(menuFile);
@@ -753,6 +756,22 @@ public class MainWindow extends JFrame {
             }
         } else {
             JOptionPane.showMessageDialog(this, "Fichier d'aide introuvable.");
+        }
+    }
+
+    private void openTutorialMovie() {
+        String currentDir = Paths.get("").toAbsolutePath().toString();
+        String tutorialPath = Paths.get(currentDir, "..", "..", "doc", "tutorial.mp4").normalize().toString();
+
+        File tutorialFile = new File(tutorialPath);
+        if (tutorialFile.exists()) {
+            try {
+                Desktop.getDesktop().open(tutorialFile);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Impossible d'ouvrir le tutoriel vidéo.");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Fichier de tutoriel introuvable.");
         }
     }
 
