@@ -4,10 +4,8 @@ import java.io.File;
 import java.nio.file.Paths;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Locale;
 import java.nio.file.Path;
 
 public class MainWindow extends JFrame {
@@ -494,9 +492,9 @@ public class MainWindow extends JFrame {
                 tempInfoProgramPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_program.csv");
                 tempInfoToolsPath = tempFolder.resolve(Paths.get(fullPathGCode).getFileName().toString() + "_tool.csv");
 
-                datasGCode = loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
-                datasProgram = loadCSVToList(tempInfoProgramPath.toFile());
-                datasTools = loadCSVToList(tempInfoToolsPath.toFile());
+                datasGCode = CSVUtils.loadCSVToList(tempGCodePath.toFile()); // Charge toutes les colonnes
+                datasProgram = CSVUtils.loadCSVToList(tempInfoProgramPath.toFile());
+                datasTools = CSVUtils.loadCSVToList(tempInfoToolsPath.toFile());
 
                 return null;
             }
@@ -525,23 +523,6 @@ public class MainWindow extends JFrame {
         };
 
         worker.execute();
-    }
-
-    // Charge les données CSV dans une liste String sans toucher à l'UI (thread swing) --> évite les erreurs sporadique au chargement du GCode
-    private java.util.List<String[]> loadCSVToList(File csvFile) {
-        java.util.List<String[]> dataList = new java.util.ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
-            br.readLine(); // Ignore entête
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
-                dataList.add(values);  // Ajoute la ligne complète (tableau de colonnes)
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erreur de lecture du fichier CSV.");
-        }
-        return dataList;
     }
 
     public void openSTLFile() {
