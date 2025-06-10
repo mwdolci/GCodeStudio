@@ -38,8 +38,6 @@ public class MainWindow extends JFrame {
     private Color backgroundColorTopRight;
     private Color backgroundColorBottomLeft; 
     private Color backgroundColorBottomRight;
-    DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
-    JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
     
     // Getter et setter pour couleurs
     public Color getBackgroundColor() { return backgroundColor;}
@@ -155,11 +153,6 @@ public class MainWindow extends JFrame {
         leftSplit.setTopComponent(gcodeScrollPane);
         leftSplit.setBottomComponent(lineInfoScroll);
         leftSplit.setResizeWeight(0.6); // 60% éditeur, 40% infos
-
-        // Initialisation à partir du listModel (ancien contenu)
-        for (int i = 0; i < listModel.size(); i++) {
-            gcodeEditor.append(listModel.getElementAt(i) + "\n");
-        }
 
         // Affichage de la ligne courante dans le panneau de droite
         gcodeEditor.addCaretListener(e -> {
