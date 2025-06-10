@@ -4,8 +4,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.nio.file.Path;
 
 public class MainWindow extends JFrame {
@@ -555,38 +553,6 @@ public class MainWindow extends JFrame {
             }
         } else {
             JOptionPane.showMessageDialog(this, messageGCodeNotOpen);
-        }
-    }
-
-    public void openHelpPDF() {
-        String currentDir = Paths.get("").toAbsolutePath().toString();
-        String helpFilePath = Paths.get(currentDir, "..", "..", "doc", "user_manual_fr.pdf").normalize().toString();
-
-        File helpFile = new File(helpFilePath);
-        if (helpFile.exists()) {
-            try {
-                Desktop.getDesktop().open(helpFile);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Impossible d'ouvrir le fichier d'aide.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Fichier d'aide introuvable.");
-        }
-    }
-
-    public void openTutorialMovie() {
-        String currentDir = Paths.get("").toAbsolutePath().toString();
-        String tutorialPath = Paths.get(currentDir, "..", "..", "doc", "tutorial.mp4").normalize().toString();
-
-        File tutorialFile = new File(tutorialPath);
-        if (tutorialFile.exists()) {
-            try {
-                Desktop.getDesktop().open(tutorialFile);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Impossible d'ouvrir le tutoriel vidéo.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Fichier de tutoriel introuvable.");
         }
     }
 

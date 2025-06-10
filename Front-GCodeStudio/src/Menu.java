@@ -39,9 +39,9 @@ public class Menu {
         menuHelp.add(itemOpenTutorialMovie);
         menuHelp.add(itemOpenWindowAbout);
 
-        itemOpenHelpPDF.addActionListener(e -> window.openHelpPDF());
-        itemOpenTutorialMovie.addActionListener(e -> window.openTutorialMovie());
-        itemOpenWindowAbout.addActionListener(e -> AboutWindow.openAboutWindow(window));
+        itemOpenHelpPDF.addActionListener(e -> Help.openHelpPDF());
+        itemOpenTutorialMovie.addActionListener(e -> Help.openTutorialMovie());
+        itemOpenWindowAbout.addActionListener(e -> Help.openAboutWindow(window));
 
         menuBar.add(menuFile);
         menuBar.add(menuFunctions);
