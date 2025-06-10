@@ -25,7 +25,7 @@ public class MainWindow extends JFrame {
     private JPanel welcomePanel;
     private JPanel ganttAndSliderPanel;
     private JPanel sliderPanel;
-    private JMenu menuParameters;
+    public JMenu menuParameters;
     private JTextArea gcodeEditor;
     private JTextArea lineInfoArea;
     private JTextArea bottomLeftTextArea;
@@ -71,7 +71,7 @@ public class MainWindow extends JFrame {
     public MainWindow() {
         super("GCodeStudio");
         initializeWindow();
-        setupMenu();
+        setJMenuBar(Menu.createMenuBar(this));
         welcomePanel = WelcomeWindow.createWelcomePanel(this::openGCodeFile);
         menuParameters.setEnabled(false); // Désactiver le menu paramètres tant que pas sur page principale
         getContentPane().add(welcomePanel, BorderLayout.CENTER);
@@ -87,57 +87,6 @@ public class MainWindow extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);    // Prend tout l'écran
         setDefaultCloseOperation(EXIT_ON_CLOSE);    // Si je ferme avec la croix, ça stop le process
         setLocationRelativeTo(null);              // Centrer
-    }
-
-    private void setupMenu() {
-        // Menu bar
-        JMenuBar menuBar = new JMenuBar();
-
-        // *Liste Fichier*
-        JMenu menuFile = new JMenu("Fichier");
-        JMenuItem itemOpenGCode = new JMenuItem("Ouvrir GCode");
-        JMenuItem itemOpenSTL = new JMenuItem("Ouvrir 3D");
-        menuFile.add(itemOpenGCode);
-        menuFile.add(itemOpenSTL);
-
-        itemOpenGCode.addActionListener(e -> openGCodeFile());
-        itemOpenSTL.addActionListener(e -> openSTLFile());
-        
-        // *Liste Fonctions*
-        JMenu menuFunctions = new JMenu("Fonctions");
-        JMenuItem itemCalculate = new JMenuItem("Recalculer");
-        JMenuItem itemViewer3D = new JMenuItem("Simulation 3D");
-        menuFunctions.add(itemCalculate);
-        menuFunctions.add(itemViewer3D);
-
-        itemCalculate.addActionListener(e -> recalculation());
-        itemViewer3D.addActionListener(e -> startViewer3D());
-
-        // *Liste Paramètres*
-        menuParameters = new JMenu("Paramètres");
-        JMenuItem itemTheme = new JMenuItem("Thème");
-        menuParameters.add(itemTheme);
-        itemTheme.addActionListener(e -> Theme.showThemeSelectionDialog(this));
-
-        // *Liste Aide*
-        JMenu menuHelp = new JMenu("Aide");
-        JMenuItem itemOpenHelpPDF = new JMenuItem("Manuel utilisateur");
-        JMenuItem itemOpenTutorialMovie = new JMenuItem("Tutoriel vidéo");
-        JMenuItem itemOpenWindowAbout = new JMenuItem("A propos");
-        menuHelp.add(itemOpenHelpPDF);
-        menuHelp.add(itemOpenTutorialMovie);
-        menuHelp.add(itemOpenWindowAbout);
-
-        itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
-        itemOpenTutorialMovie.addActionListener(e -> openTutorialMovie());
-        itemOpenWindowAbout.addActionListener(e -> AboutWindow.openAboutWindow(this));
-
-        menuBar.add(menuFile);
-        menuBar.add(menuFunctions);
-        menuBar.add(menuParameters);
-        menuBar.add(menuHelp);
-
-        setJMenuBar(menuBar);
     }
 
     // 3 Panels
@@ -502,7 +451,7 @@ public class MainWindow extends JFrame {
         bottomRight.repaint();
     }
 
-    private void openGCodeFile() {
+    public void openGCodeFile() {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Ouvrir un fichier GCode");
@@ -596,7 +545,7 @@ public class MainWindow extends JFrame {
         return dataList;
     }
 
-    private void openSTLFile() {
+    public void openSTLFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Ouvrir un fichier 3D");
 
@@ -650,7 +599,7 @@ public class MainWindow extends JFrame {
         return sb.toString().trim();
     }
 
-    private void recalculation() {
+    public void recalculation() {
 
         if (fullPathGCode != null && !fullPathGCode.isEmpty()) {
             File f = new File(fullPathGCode);
@@ -664,7 +613,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void openHelpPDF() {
+    public void openHelpPDF() {
         String currentDir = Paths.get("").toAbsolutePath().toString();
         String helpFilePath = Paths.get(currentDir, "..", "..", "doc", "user_manual_fr.pdf").normalize().toString();
 
@@ -680,7 +629,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void openTutorialMovie() {
+    public void openTutorialMovie() {
         String currentDir = Paths.get("").toAbsolutePath().toString();
         String tutorialPath = Paths.get(currentDir, "..", "..", "doc", "tutorial.mp4").normalize().toString();
 
@@ -696,7 +645,7 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void startViewer3D() {
+    public void startViewer3D() {
         if (GCodeIsOpen) {
             new Thread(() -> { // Lance le script Python dans un thread séparé --> évite de bloquer l'UI
                 String currentDir = Paths.get("").toAbsolutePath().toString();
