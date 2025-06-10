@@ -107,7 +107,7 @@ public class MainWindow extends JFrame {
 
         itemOpenHelpPDF.addActionListener(e -> openHelpPDF());
         itemOpenTutorialMovie.addActionListener(e -> openTutorialMovie());
-        itemOpenWindowAbout.addActionListener(e -> openAboutWindow());
+        itemOpenWindowAbout.addActionListener(e -> AboutWindow.openAboutWindow(this));
 
         menuBar.add(menuFile);
         menuBar.add(menuFunctions);
@@ -886,20 +886,5 @@ public class MainWindow extends JFrame {
         gcodeEditor.setBackground(backgroundColorEditor);
         revalidate();
         repaint();
-    }
-
-    //*************************************************************************************
-    // *** Pop-up A propos ***
-    //*************************************************************************************
-    private void openAboutWindow() {
-        String aboutText = "GCode Studio V1.0\n\n" +
-                "Développé par Dolci Marco & Toussaint Guillaume\n" +
-                "Dans le cadre de la formation MAS-RAD à la HE-Arc Ingénierie (Neuchâtel)\n\n" +
-                "Ce logiciel est gratuit et peut être utilisé librement à vos propres risques.\n" +
-                "Les auteurs ne peuvent être tenus responsables de tout dommage direct ou indirect\n" +
-                "résultant de son utilisation.\n\n" +
-                "Aucune licence spécifique n'est appliquée.";
-
-        JOptionPane.showMessageDialog(this, aboutText, "À propos", JOptionPane.INFORMATION_MESSAGE);
     }
 }
