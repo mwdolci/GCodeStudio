@@ -13,7 +13,6 @@ import java.nio.file.Path;
 public class MainWindow extends JFrame {
 
     private boolean GCodeIsOpen = false;
-    private boolean STLIsOpen = false;
     private String fullPathSTL = "";
     private String fullPathGCode = "";
     private java.util.List<String[]> datasGCode;  // variable temporaire pour stocker toutes les colonnes CSV
@@ -41,6 +40,7 @@ public class MainWindow extends JFrame {
     private Color backgroundColorTopRight;
     private Color backgroundColorBottomLeft; 
     private Color backgroundColorBottomRight;
+    private int padding = 20;  // position à laquelle commencent les valeurs
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -63,7 +63,7 @@ public class MainWindow extends JFrame {
         // Configuration de la fenêtre
         setExtendedState(JFrame.MAXIMIZED_BOTH);    // Prend tout l'écran
         setDefaultCloseOperation(EXIT_ON_CLOSE);    // Si je ferme avec la croix, ça stop le process
-        setLocationRelativeTo(null);                // Centrer
+        setLocationRelativeTo(null);              // Centrer
     }
 
     private void setupMenu() {
@@ -139,7 +139,6 @@ public class MainWindow extends JFrame {
 
                 g2d.setPaint(lgp);
                 g2d.fillRect(0, 0, width, height);
-
                 g2d.dispose();
             }
         };
@@ -302,24 +301,7 @@ public class MainWindow extends JFrame {
 
                     // Nom des champs
                     String[] labels = {"N° outil", "", "Temps", "Durée", "", "Avance", "Rotation", "", "Mouvement", "Distance", "Position X", "Position Y", "Position Z", "Rayon"};
-                    int[] columnIndices = {
-                        1,     // Numéro outil
-                        -1,    // Vide
-                        11,    // Temps
-                        10,    // Durée
-                        -1,    // Vide
-                        9,     // Avance
-                        12,    // Rotation
-                        -1,    // Vide
-                        2,     // Mouvement
-                        7,     // Distance
-                        3,     // X
-                        4,     // Y
-                        5,     // Z
-                        6      // Rayon
-                    };
-
-                    int padding = 20;  // position à laquelle commencent les valeurs
+                    int[] columnIndices = {1, -1, 11, 10, -1, 9, 12, -1, 2, 7, 3, 4, 5, 6};
 
                     for (int i = 0; i < labels.length; i++) {
                         if (columnIndices[i] == -1) {
@@ -443,7 +425,6 @@ public class MainWindow extends JFrame {
         String[] labels = {"Numéro outil", "", "Durée", "Durée productive", "Durée improductive", "", "Distance", "Distance en matière"};
         int[] columnIndices = {0, -1, 1, 2, 3, -1, 4, 5};
 
-        int padding = 20;
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < labels.length; i++) {
@@ -530,7 +511,6 @@ public class MainWindow extends JFrame {
         String[] labels = {"Fichier G-Code", "Fichier 3D", "", "", "Nombre de lignes", "Durée du programme", "Durée productive", "Durée imporductive"};
         int[] columnIndices = {0, -2, -1, -1, 2, 3, 4, 5};
 
-        int padding = 20;
         int numberOfCharacters = 30; // Nombre de caractères maximum pour le nom du fichier
         StringBuilder builder = new StringBuilder();
 
@@ -684,11 +664,6 @@ public class MainWindow extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             fullPathSTL = selectedFile.getAbsolutePath();
-                
-            String currentDir = Paths.get("").toAbsolutePath().toString();
-            String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-               
-            STLIsOpen = true;
 
             setupBottomRight(mainSplit); // On recharge le panel pour affichage du nom du stl
         }
@@ -775,18 +750,6 @@ public class MainWindow extends JFrame {
         }
     }
 
-    private void openAboutWindow() {
-        String aboutText = "GCode Studio V1.0\n\n" +
-                "Développé par Dolci Marco & Toussaint Guillaume\n" +
-                "Dans le cadre de la formation MAS-RAD à la HE-Arc Ingénierie (Neuchâtel)\n\n" +
-                "Ce logiciel est gratuit et peut être utilisé librement à vos propres risques.\n" +
-                "Les auteurs ne peuvent être tenus responsables de tout dommage direct ou indirect\n" +
-                "résultant de son utilisation.\n\n" +
-                "Aucune licence spécifique n'est appliquée.";
-
-        JOptionPane.showMessageDialog(this, aboutText, "À propos", JOptionPane.INFORMATION_MESSAGE);
-    }
-
     private void startViewer3D() {
         if (GCodeIsOpen) {
             new Thread(() -> { // Lance le script Python dans un thread séparé --> évite de bloquer l'UI
@@ -804,8 +767,7 @@ public class MainWindow extends JFrame {
             return path;
         }
 
-        // Normaliser les séparateurs : remplace tous les \ par /
-        path = path.replace("\\", "/");
+        path = path.replace("\\", "/"); // Normalise les séparateurs : remplace tous les \ par /
 
         String fileName = new File(path).getName();
 
@@ -815,13 +777,15 @@ public class MainWindow extends JFrame {
 
         int keepLength = maxLength - fileName.length() - 5; // 5 pour /.../
         String start = path.substring(0, Math.min(keepLength, path.length()));
-
-        // Supprimer les éventuels / en trop à la fin
-        start = start.replaceAll("/+$", "");
+        
+        start = start.replaceAll("/+$", ""); // Supprime les éventuels / en trop à la fin
 
         return start + "/.../" + fileName;
     }
 
+    //*************************************************************************************
+    // #region : Gestion des thèmes 
+    //*************************************************************************************
     private void showThemeSelectionDialog() {
         JDialog dialog = new JDialog(this, "Sélection du thème", true);
         dialog.setLayout(new BorderLayout());
@@ -922,5 +886,20 @@ public class MainWindow extends JFrame {
         gcodeEditor.setBackground(backgroundColorEditor);
         revalidate();
         repaint();
+    }
+
+    //*************************************************************************************
+    // *** Pop-up A propos ***
+    //*************************************************************************************
+    private void openAboutWindow() {
+        String aboutText = "GCode Studio V1.0\n\n" +
+                "Développé par Dolci Marco & Toussaint Guillaume\n" +
+                "Dans le cadre de la formation MAS-RAD à la HE-Arc Ingénierie (Neuchâtel)\n\n" +
+                "Ce logiciel est gratuit et peut être utilisé librement à vos propres risques.\n" +
+                "Les auteurs ne peuvent être tenus responsables de tout dommage direct ou indirect\n" +
+                "résultant de son utilisation.\n\n" +
+                "Aucune licence spécifique n'est appliquée.";
+
+        JOptionPane.showMessageDialog(this, aboutText, "À propos", JOptionPane.INFORMATION_MESSAGE);
     }
 }
