@@ -32,6 +32,7 @@ public class MainWindow extends JFrame {
     private JSplitPane mainSplit;
     private JSlider timeSlider;
     private int selectedToolNumber = -1; // -1 = aucun outil sélectionné
+    private int padding = 20;  // position à laquelle commencent les valeurs
     private LinearGanttPanel linearGanttPanel;
     private Color backgroundColor = new Color(244, 244, 244);
     private Color backgroundColorEditor;
@@ -40,7 +41,29 @@ public class MainWindow extends JFrame {
     private Color backgroundColorTopRight;
     private Color backgroundColorBottomLeft; 
     private Color backgroundColorBottomRight;
-    private int padding = 20;  // position à laquelle commencent les valeurs
+    
+    // Getter et setter pour couleurs
+    public Color getBackgroundColor() { return backgroundColor;}
+    public void setBackgroundColor(Color color) {this.backgroundColor = color;}
+    public Color getBackgroundColorTopRight() {return backgroundColorTopRight;}
+    public void setBackgroundColorTopRight(Color color) {this.backgroundColorTopRight = color;}
+    public Color getBackgroundColorBottomLeft() {return backgroundColorBottomLeft;}
+    public void setBackgroundColorBottomLeft(Color color) {this.backgroundColorBottomLeft = color;}
+    public Color getBackgroundColorBottomRight() {return backgroundColorBottomRight;}
+    public void setBackgroundColorBottomRight(Color color) {this.backgroundColorBottomRight = color;}
+    public Color getBackgroundColorEditor() {return backgroundColorEditor;}
+    public void setBackgroundColorEditor(Color color) {this.backgroundColorEditor = color;}
+    public Color getTextColor() {return textColor;}
+    public void setTextColor(Color color) {this.textColor = color;}
+
+    // Getters pour les composants
+    public JTextArea getLineInfoArea() {return lineInfoArea;}
+    public JTextArea getBottomLeftTextArea() {return bottomLeftTextArea;}
+    public JTextArea getBottomRightTextArea() {return bottomRightTextArea;}
+    public LinearGanttPanel getLinearGanttPanel() {return linearGanttPanel;}
+    public JPanel getSliderPanel() {return sliderPanel;}
+    public JPanel getGanttAndSliderPanel() {return ganttAndSliderPanel;}
+    public JTextArea getGcodeEditor() {return gcodeEditor;}
 
     DefaultListModel<String> listModel = new DefaultListModel<>();  // Modèle liste pour stockage des données
     JList<String> itemList = new JList<>(listModel);                // Création de la liste pour affichage
@@ -94,7 +117,7 @@ public class MainWindow extends JFrame {
         menuParameters = new JMenu("Paramètres");
         JMenuItem itemTheme = new JMenuItem("Thème");
         menuParameters.add(itemTheme);
-        itemTheme.addActionListener(e -> showThemeSelectionDialog());
+        itemTheme.addActionListener(e -> Theme.showThemeSelectionDialog(this));
 
         // *Liste Aide*
         JMenu menuHelp = new JMenu("Aide");
@@ -781,110 +804,5 @@ public class MainWindow extends JFrame {
         start = start.replaceAll("/+$", ""); // Supprime les éventuels / en trop à la fin
 
         return start + "/.../" + fileName;
-    }
-
-    //*************************************************************************************
-    // #region : Gestion des thèmes 
-    //*************************************************************************************
-    private void showThemeSelectionDialog() {
-        JDialog dialog = new JDialog(this, "Sélection du thème", true);
-        dialog.setLayout(new BorderLayout());
-        dialog.setSize(300, 150);
-        dialog.setLocationRelativeTo(this);
-
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-
-        JRadioButton lightButton = new JRadioButton("Light");
-        JRadioButton darkButton = new JRadioButton("Dark");
-        JRadioButton harlequinButton = new JRadioButton("Harlequin");
-
-        // Sélection actuelle
-        if (backgroundColor.equals(new Color(34, 34, 34))) {
-            darkButton.setSelected(true);
-        } else if (backgroundColor.equals(new Color(0, 120, 255))) {
-            harlequinButton.setSelected(true);
-        } else {
-            lightButton.setSelected(true);
-        }
-
-        ButtonGroup group = new ButtonGroup();
-        group.add(lightButton);
-        group.add(darkButton);
-        group.add(harlequinButton);
-
-        centerPanel.add(lightButton);
-        centerPanel.add(darkButton);
-        centerPanel.add(harlequinButton);
-
-        JPanel buttonPanel = new JPanel();
-        JButton applyButton = new JButton("Appliquer");
-        JButton cancelButton = new JButton("Annuler");
-
-        applyButton.addActionListener(e -> {
-            if (lightButton.isSelected()) {
-                applyLightTheme();
-            } else if (darkButton.isSelected()) {
-                applyDarkTheme();
-            } else if (harlequinButton.isSelected()) {
-                applyHarlequinTheme();
-            }
-            dialog.dispose();
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        buttonPanel.add(applyButton);
-        buttonPanel.add(cancelButton);
-
-        dialog.add(centerPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-        dialog.setVisible(true);
-    }
-
-    private void applyLightTheme() {
-        backgroundColor = new Color(244, 244, 244);
-        backgroundColorTopRight = backgroundColor;
-        backgroundColorBottomLeft = backgroundColor;
-        backgroundColorBottomRight = backgroundColor;
-        backgroundColorEditor = Color.WHITE;
-        textColor = Color.BLACK;
-        applyThemeColors();
-    }
-
-    private void applyDarkTheme() {
-        backgroundColor = new Color(34, 34, 34);
-        backgroundColorTopRight = backgroundColor;
-        backgroundColorBottomLeft = backgroundColor;
-        backgroundColorBottomRight = backgroundColor;
-        backgroundColorEditor = new Color(200, 200, 200);
-        textColor = Color.WHITE;
-        applyThemeColors();
-    }
-
-    private void applyHarlequinTheme() {
-        backgroundColor = new Color(0, 120, 255);
-        backgroundColorTopRight = new Color(140, 180, 255);
-        backgroundColorBottomLeft = new Color(255, 170, 200);
-        backgroundColorBottomRight = new Color(150, 230, 150);
-        backgroundColorEditor = new Color(255, 250, 210);
-        textColor = Color.BLACK;
-        applyThemeColors();
-    }
-
-    private void applyThemeColors() {
-        getContentPane().setBackground(backgroundColor);
-        lineInfoArea.setBackground(backgroundColorTopRight);
-        lineInfoArea.setForeground(textColor);
-        bottomLeftTextArea.setBackground(backgroundColorBottomLeft);
-        bottomLeftTextArea.setForeground(textColor);
-        bottomRightTextArea.setBackground(backgroundColorBottomRight);
-        bottomRightTextArea.setForeground(textColor);
-        linearGanttPanel.setBackground(backgroundColorBottomLeft);
-        sliderPanel.setBackground(backgroundColorBottomLeft);
-        ganttAndSliderPanel.setBackground(backgroundColorBottomLeft);
-        gcodeEditor.setBackground(backgroundColorEditor);
-        revalidate();
-        repaint();
     }
 }
