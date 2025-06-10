@@ -15,6 +15,7 @@ public class MainWindow extends JFrame {
     private boolean GCodeIsOpen = false;
     private String fullPathSTL = "";
     private String fullPathGCode = "";
+    private String messageGCodeNotOpen = "Aucun fichier GCode ouvert !";
     private java.util.List<String[]> datasGCode;  // variable temporaire pour stocker toutes les colonnes CSV
     private java.util.List<String[]> datasProgram;
     private java.util.List<String[]> datasTools;
@@ -659,7 +660,7 @@ public class MainWindow extends JFrame {
                 JOptionPane.showMessageDialog(this, "Fichier GCode déplacé ou inaccessible !");
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Aucun fichier GCode chargé !");
+            JOptionPane.showMessageDialog(this, messageGCodeNotOpen);
         }
     }
 
@@ -703,7 +704,7 @@ public class MainWindow extends JFrame {
                 PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen);
             }).start();
         } else {
-            JOptionPane.showMessageDialog(this, "Aucun fichier GCode ouvert !");
+            JOptionPane.showMessageDialog(this, messageGCodeNotOpen);
         }
     }
 
