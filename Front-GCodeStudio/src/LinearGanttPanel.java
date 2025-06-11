@@ -50,7 +50,7 @@ public class LinearGanttPanel extends JPanel {
 					if (toolRects.get(i).contains(p)) { // Si le clic est dans un rectangle
 						selectedToolIndex = i;
 						ToolUsage selectedTool = timeline.get(i);
-						System.out.println("Clicked Tool T" + selectedTool.toolNumber);
+						System.out.println("Clicked Tool T" + selectedTool.toolNumber); // Pour debug
 						
                         if (toolSelectionListener != null) {
                             toolSelectionListener.onToolSelected(selectedTool.toolNumber);
@@ -66,7 +66,7 @@ public class LinearGanttPanel extends JPanel {
     }
 
     public void setCurrentTime(double seconds) {
-        System.out.println("currentTime = " + currentTime + ", totalTime = " + totalTime + ", seconds = " + seconds);
+        System.out.println("currentTime = " + currentTime + ", totalTime = " + totalTime + ", seconds = " + seconds); // Pour debug
         this.currentTime = Math.max(0, Math.min(seconds, totalTime)); // entre 0 et totalTime
         repaint();
     }
@@ -99,7 +99,7 @@ public class LinearGanttPanel extends JPanel {
     }
 
     public void loadCSV(String path) {
-        System.out.println("Charge depuis LinearGanttPanel");
+        System.out.println("Charge depuis LinearGanttPanel"); // Pour debug
         timeline.clear(); // Vide la liste avant de charger
         totalTime = 0; // Réinitialise le temps total
         toolColors.clear(); // Vide les couleurs des outils

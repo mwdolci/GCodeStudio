@@ -466,7 +466,7 @@ public class MainWindow extends JFrame {
     }
 
     private void processLoadGCodeFile(String filePath){
-        System.out.println("Charge depuis MainWindow");
+        System.out.println("Charge depuis MainWindow"); // Pour debug
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
 
         LoadingDialog loading = new LoadingDialog(this, "Calcul en cours...");
@@ -515,6 +515,7 @@ public class MainWindow extends JFrame {
                 setupBottomLeft(mainSplit);
 
                 if (menuParameters != null) {menuParameters.setEnabled(true); } // Réactiver le menu paramètres après chargement du GCode
+                Theme.reapplyCurrentTheme(MainWindow.this); // "MainWindow." car on est dans le SwingWorker
             }
         };
 
