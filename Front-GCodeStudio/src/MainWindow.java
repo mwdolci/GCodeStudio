@@ -8,10 +8,10 @@ import java.nio.file.Path;
 
 public class MainWindow extends JFrame {
 
-    private boolean GCodeIsOpen = false;
-    private String fullPathSTL = "";
-    private String fullPathGCode = "";
-    private String messageGCodeNotOpen = "Aucun fichier GCode ouvert !";
+    public boolean GCodeIsOpen = false;
+    public String fullPathSTL = "";
+    public String fullPathGCode = "";
+    public String messageGCodeNotOpen = "Aucun fichier GCode ouvert !";
     private java.util.List<String[]> datasGCode;  // variable temporaire pour stocker toutes les colonnes CSV
     private java.util.List<String[]> datasProgram;
     private java.util.List<String[]> datasTools;
@@ -38,6 +38,7 @@ public class MainWindow extends JFrame {
     private Color backgroundColorTopRight;
     private Color backgroundColorBottomLeft; 
     private Color backgroundColorBottomRight;
+    public Viewer3D fileViewer3d;
     
     // Getter et setter pour couleurs
     public Color getBackgroundColor() { return backgroundColor;}
@@ -64,6 +65,7 @@ public class MainWindow extends JFrame {
 
     public MainWindow() {
         super("GCodeStudio");
+        fileViewer3d = new Viewer3D(this);
         initializeWindow();
         setJMenuBar(Menu.createMenuBar(this));
         welcomePanel = WelcomeWindow.createWelcomePanel(this::openGCodeFile);
@@ -544,18 +546,6 @@ public class MainWindow extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Fichier GCode déplacé ou inaccessible !");
             }
-        } else {
-            JOptionPane.showMessageDialog(this, messageGCodeNotOpen);
-        }
-    }
-
-    public void startViewer3D() {
-        if (GCodeIsOpen) {
-            new Thread(() -> { // Lance le script Python dans un thread séparé --> évite de bloquer l'UI
-                String currentDir = Paths.get("").toAbsolutePath().toString();
-                String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-                PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, GCodeIsOpen);
-            }).start();
         } else {
             JOptionPane.showMessageDialog(this, messageGCodeNotOpen);
         }

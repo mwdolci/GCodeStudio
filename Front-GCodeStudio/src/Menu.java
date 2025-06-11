@@ -22,7 +22,7 @@ public class Menu {
         menuFunctions.add(itemViewer3D);
 
         itemCalculate.addActionListener(e -> window.recalculation());
-        itemViewer3D.addActionListener(e -> window.startViewer3D());
+        itemViewer3D.addActionListener(e -> window.fileViewer3d.startViewer3D());
 
         // Paramètres
         window.menuParameters = new JMenu("Paramètres");
