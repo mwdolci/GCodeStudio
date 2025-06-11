@@ -469,13 +469,15 @@ public class MainWindow extends JFrame {
         System.out.println("Charge depuis MainWindow");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); // Sablier
 
+        LoadingDialog loading = new LoadingDialog(this, "Calcul en cours...");
+        
         // Travail en arrière-plan
         SwingWorker<Void, Void> worker = new SwingWorker<>() { // Classe absraite pour tâche en arrière plan sans figer swing
+        
             @Override
             protected Void doInBackground() throws Exception {
                 String currentDir = Paths.get("").toAbsolutePath().toString();
                 String pythonScriptPath = Paths.get(currentDir, "..", "..", "Back-GCodeStudio", "main.py").normalize().toString();
-
                 GCodeIsOpen = true;
 
                 PythonCaller.runScript(fullPathGCode, fullPathSTL, pythonScriptPath, false);
@@ -494,6 +496,7 @@ public class MainWindow extends JFrame {
 
             @Override
             protected void done() {
+                loading.closeDialog();
                 gcodeEditor.setText("");
                 for (String[] row : datasGCode) {
                     if (row.length > 0) {
@@ -516,6 +519,7 @@ public class MainWindow extends JFrame {
         };
 
         worker.execute();
+        loading.showDialog();
     }
 
     public void openSTLFile() {
