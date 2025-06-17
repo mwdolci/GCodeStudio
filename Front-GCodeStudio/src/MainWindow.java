@@ -538,6 +538,7 @@ public class MainWindow extends JFrame {
             
             if (GCodeIsOpen) {
                 setupBottomRight(mainSplit); // On recharge le panel pour affichage du nom du stl
+                Theme.reapplyCurrentTheme(this);
             }
         }
     }
