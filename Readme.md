@@ -2,6 +2,7 @@
 
 ## 👥 Auteurs
 **Dolci Marco** & **Toussaint Guillaume**  
+  
 Contributions externes bienvenues via Pull Request
 
 ## 🧾 Description
