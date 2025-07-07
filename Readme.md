@@ -1,7 +1,7 @@
 # 🖥️ GCodeStudio
 
 ## 👥 Auteurs
-**Dolci Marco** & **Toussaint Guillaume**
+**Dolci Marco** & **Toussaint Guillaume**  
 Contributions externes bienvenues via Pull Request
 
 ## 🧾 Description
